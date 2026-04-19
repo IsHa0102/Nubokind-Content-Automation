@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Nubokind Content Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    input, select, button {
+      display: block;
+      margin: 10px 0;
+      padding: 8px;
+      width: 100%;
+    }
+
+    button {
+      background-color: #c96b6b;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    pre {
+      background: #f4f4f4;
+      padding: 15px;
+      white-space: pre-wrap;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Nubokind Content Automation</h1>
+
+  <!-- TOPIC -->
+  <label>Topic</label>
+  <input id="topic" placeholder="Enter topic..." />
+
+  <!-- CATEGORY -->
+  <label>Category</label>
+  <select id="category">
+    <option value="all_teethers">All Teethers</option>
+    <option value="books_kit">Books / Kit</option>
+    <option value="all_products">All Products</option>
+  </select>
+
+  <!-- BLOG TYPE -->
+  <label>Blog Type</label>
+  <select id="blogType">
+    <option value="general">General</option>
+    <option value="scientific">Scientific</option>
+    <option value="sales">Sales</option>
+  </select>
+
+  <!-- MEDIUM TYPE -->
+  <label>Medium Type</label>
+  <select id="mediumType">
+    <option value="story">Story</option>
+    <option value="science">Science</option>
+    <option value="soft">Soft Sales</option>
+  </select>
+
+  <!-- BUTTON -->
+  <button onclick="generateContent()" id="generateBtn">Generate Content</button>
+  <p id="loadingIndicator" style="display: none; color: #c96b6b; font-weight: bold; margin-top: 10px; text-align: center;">Generating content, please wait... This may take a minute.</p>
+
+  <!-- OUTPUT -->
+  <h2>Shopify Blog</h2>
+  <pre id="blogOutput"></pre>
+
+  <h2>Medium Article</h2>
+  <pre id="mediumOutput"></pre>
+
+  <!-- SCRIPT -->
+  <script>
+    async function generateContent() {
+      const topic = document.getElementById("topic").value;
+      const category = document.getElementById("category").value;
+      const blogType = document.getElementById("blogType").value;
+      const mediumType = document.getElementById("mediumType").value;
+      
+      const btn = document.getElementById("generateBtn");
+      const loading = document.getElementById("loadingIndicator");
+      
+      btn.disabled = true;
+      loading.style.display = "block";
+      document.getElementById("blogOutput").innerText = "";
+      document.getElementById("mediumOutput").innerText = "";
+
+      try {
+        const res = await fetch("http://localhost:5000/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            topic,
+            category,
+            blogType,
+            mediumType
+          })
+        });
+
+        const data = await res.json();
+
+        document.getElementById("blogOutput").innerText = data.blog;
+        document.getElementById("mediumOutput").innerText = data.medium;
+      } catch (error) {
+        console.error(error);
+        document.getElementById("blogOutput").innerText = "Error generating content.";
+      } finally {
+        btn.disabled = false;
+        loading.style.display = "none";
+      }
+    }
+  </script>
+
+</body>
+</html>
