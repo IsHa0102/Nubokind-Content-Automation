@@ -1,124 +1,237 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Nubokind content automation tool for generating Shopify blogs and Medium articles." />
   <title>Nubokind Content Generator</title>
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      max-width: 800px;
-      margin: auto;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #0f0f11;
+      color: #e8e8ed;
+      min-height: 100vh;
+      padding: 32px 20px;
     }
 
-    input, select, button {
-      display: block;
-      margin: 10px 0;
-      padding: 8px;
-      width: 100%;
+    .container { max-width: 860px; margin: 0 auto; }
+
+    /* ── Header ── */
+    .header { text-align: center; margin-bottom: 40px; }
+    .header h1 {
+      font-size: 2rem; font-weight: 700; letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #e8e8ed 0%, #a0a0b4 100%);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .header p { color: #666; font-size: 0.9rem; margin-top: 6px; }
+
+    /* ── Card ── */
+    .card {
+      background: #18181c;
+      border: 1px solid #2a2a33;
+      border-radius: 14px;
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+    .card-title {
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #666; margin-bottom: 18px;
     }
 
-    button {
-      background-color: #c96b6b;
-      color: white;
-      border: none;
-      cursor: pointer;
+    /* ── Form ── */
+    .field { margin-bottom: 16px; }
+    label { display: block; font-size: 0.82rem; color: #999; margin-bottom: 6px; font-weight: 500; }
+    input, select, textarea {
+      width: 100%; background: #0f0f11; color: #e8e8ed;
+      border: 1px solid #2a2a33; border-radius: 8px;
+      padding: 10px 13px; font-size: 0.9rem; transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: #5555cc;
+    }
+    textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
+    select option { background: #18181c; }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    @media (max-width: 600px) { .row { grid-template-columns: 1fr; } }
+
+    /* ── Buttons ── */
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+    .btn {
+      flex: 1; min-width: 140px; padding: 11px 20px;
+      border: none; border-radius: 8px; cursor: pointer;
+      font-size: 0.9rem; font-weight: 600; font-family: inherit;
+      transition: all 0.18s; letter-spacing: 0.01em;
+    }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-both { background: #4a4aee; color: #fff; }
+    .btn-both:hover:not(:disabled) { background: #5a5aff; transform: translateY(-1px); }
+    .btn-blog { background: #1e1e2e; color: #a0a0e8; border: 1px solid #3a3a66; }
+    .btn-blog:hover:not(:disabled) { background: #2a2a3e; transform: translateY(-1px); }
+    .btn-article { background: #1e2a1e; color: #80c080; border: 1px solid #3a5a3a; }
+    .btn-article:hover:not(:disabled) { background: #243024; transform: translateY(-1px); }
+    .btn-copy {
+      background: transparent; color: #888; border: 1px solid #2a2a33;
+      padding: 6px 14px; font-size: 0.78rem; min-width: unset; flex: unset; border-radius: 6px;
+    }
+    .btn-copy:hover { color: #ccc; border-color: #555; }
+    .btn-copy.copied { color: #6abf6a; border-color: #3a663a; }
+
+    /* ── Loading ── */
+    .loading {
+      display: none; align-items: center; gap: 10px;
+      color: #888; font-size: 0.85rem; margin-top: 14px;
+    }
+    .loading.active { display: flex; }
+    .spinner {
+      width: 16px; height: 16px; border: 2px solid #333;
+      border-top-color: #5555cc; border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Output section ── */
+    .output-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .output-label { font-size: 0.82rem; color: #999; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    textarea.output-box {
+      width: 100%; min-height: 260px; background: #0c0c0e;
+      border: 1px solid #2a2a33; border-radius: 8px;
+      padding: 14px; font-size: 0.82rem; color: #c8c8d8;
+      font-family: 'Menlo', 'Consolas', monospace; line-height: 1.6;
+      resize: vertical;
     }
 
-    pre {
-      background: #f4f4f4;
-      padding: 15px;
-      white-space: pre-wrap;
-      border-radius: 6px;
+    /* ── History ── */
+    .history-toggle {
+      width: 100%; background: none; border: 1px solid #2a2a33;
+      color: #666; padding: 10px; border-radius: 8px; cursor: pointer;
+      font-size: 0.82rem; font-family: inherit; text-align: left;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: border-color 0.2s; margin-bottom: 0;
     }
+    .history-toggle:hover { border-color: #444; color: #999; }
+    .history-list { display: none; margin-top: 12px; }
+    .history-list.open { display: block; }
+    .history-item {
+      background: #0f0f11; border: 1px solid #222;
+      border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;
+      font-size: 0.82rem; cursor: pointer; transition: border-color 0.2s;
+    }
+    .history-item:hover { border-color: #3a3a55; }
+    .history-item .h-topic { color: #c8c8d8; font-weight: 600; }
+    .history-item .h-meta { color: #555; margin-top: 3px; font-size: 0.76rem; }
+    .history-item .h-badges { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
+    .badge {
+      font-size: 0.68rem; padding: 2px 8px; border-radius: 4px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .badge-blog { background: #1e1e3a; color: #8080cc; }
+    .badge-article { background: #1e2e1e; color: #70aa70; }
+    .badge-desc { background: #2a2010; color: #998855; }
+
+    .empty-history { color: #444; font-size: 0.82rem; text-align: center; padding: 20px; }
   </style>
 </head>
 
 <body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>Nubokind Content Generator</h1>
+      <p>Generate Shopify blogs and Medium articles with AI</p>
+    </div>
 
-  <h1>Nubokind Content Automation</h1>
+    <!-- Input Card -->
+    <div class="card">
+      <div class="card-title">Content Settings</div>
 
-  <!-- TOPIC -->
-  <label>Topic</label>
-  <input id="topic" placeholder="Enter topic..." />
+      <div class="field">
+        <label for="topic">Topic</label>
+        <input id="topic" type="text" placeholder="e.g. Why teething babies need sensory stimulation" />
+      </div>
 
-  <!-- CATEGORY -->
-  <label>Category</label>
-  <select id="category">
-    <option value="all_teethers">All Teethers</option>
-    <option value="books_kit">Books / Kit</option>
-    <option value="all_products">All Products</option>
-  </select>
+      <div class="field">
+        <label for="description">Description / Tone Guide <span style="color:#444">(optional)</span></label>
+        <textarea id="description" placeholder="e.g. Keep it warm and reassuring. Focus on safety angle. Mention BIS certification."></textarea>
+      </div>
 
-  <!-- BLOG TYPE -->
-  <label>Blog Type</label>
-  <select id="blogType">
-    <option value="general">General</option>
-    <option value="scientific">Scientific</option>
-    <option value="sales">Sales</option>
-  </select>
+      <div class="row">
+        <div class="field">
+          <label for="category">Category</label>
+          <select id="category">
+            <option value="all_teethers">All Teethers</option>
+            <option value="books_kit">Books / Kit</option>
+            <option value="all_products">All Products</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="blogType">Blog Type</label>
+          <select id="blogType">
+            <option value="general">General</option>
+            <option value="scientific">Scientific</option>
+            <option value="sales">Sales</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="mediumType">Medium Type</label>
+          <select id="mediumType">
+            <option value="story">Story</option>
+            <option value="science">Science</option>
+            <option value="soft">Soft Sales</option>
+          </select>
+        </div>
+      </div>
 
-  <!-- MEDIUM TYPE -->
-  <label>Medium Type</label>
-  <select id="mediumType">
-    <option value="story">Story</option>
-    <option value="science">Science</option>
-    <option value="soft">Soft Sales</option>
-  </select>
+      <div class="btn-row">
+        <button class="btn btn-blog" id="btnBlog" onclick="generateBlog()">Generate Blog</button>
+        <button class="btn btn-article" id="btnArticle" onclick="generateArticle()">Generate Article</button>
+        <button class="btn btn-both" id="btnBoth" onclick="generateBoth()">Generate Both</button>
+      </div>
 
-  <!-- BUTTON -->
-  <button onclick="generateContent()" id="generateBtn">Generate Content</button>
-  <p id="loadingIndicator" style="display: none; color: #c96b6b; font-weight: bold; margin-top: 10px; text-align: center;">Generating content, please wait... This may take a minute.</p>
+      <div class="loading" id="loadingIndicator">
+        <div class="spinner"></div>
+        <span id="loadingText">Generating content, please wait…</span>
+      </div>
+    </div>
 
-  <!-- OUTPUT -->
-  <h2>Shopify Blog</h2>
-  <pre id="blogOutput"></pre>
+    <!-- Blog Output Card -->
+    <div class="card">
+      <div class="output-header">
+        <span class="output-label">Shopify Blog</span>
+        <button class="btn btn-copy" id="copyBlogBtn" onclick="copyOutput('blogOutput', 'copyBlogBtn')">Copy Blog</button>
+      </div>
+      <textarea class="output-box" id="blogOutput" readonly placeholder="Blog HTML will appear here…"></textarea>
+    </div>
 
-  <h2>Medium Article</h2>
-  <pre id="mediumOutput"></pre>
+    <!-- Article Output Card -->
+    <div class="card">
+      <div class="output-header">
+        <span class="output-label">Medium Article</span>
+        <button class="btn btn-copy" id="copyArticleBtn" onclick="copyOutput('mediumOutput', 'copyArticleBtn')">Copy Article</button>
+      </div>
+      <textarea class="output-box" id="mediumOutput" readonly placeholder="Medium article will appear here…"></textarea>
+    </div>
 
-  <!-- SCRIPT -->
-  <script>
-    async function generateContent() {
-      const topic = document.getElementById("topic").value;
-      const category = document.getElementById("category").value;
-      const blogType = document.getElementById("blogType").value;
-      const mediumType = document.getElementById("mediumType").value;
-      
-      const btn = document.getElementById("generateBtn");
-      const loading = document.getElementById("loadingIndicator");
-      
-      btn.disabled = true;
-      loading.style.display = "block";
-      document.getElementById("blogOutput").innerText = "";
-      document.getElementById("mediumOutput").innerText = "";
+    <!-- History Card -->
+    <div class="card">
+      <button class="history-toggle" id="historyToggle" onclick="toggleHistory()">
+        <span>Generation History</span>
+        <span id="historyChevron">▼</span>
+      </button>
+      <div class="history-list" id="historyList">
+        <div class="empty-history" id="historyEmpty">No history yet. Generate some content!</div>
+      </div>
+    </div>
 
-      try {
-        const res = await fetch("http://localhost:5000/generate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            topic,
-            category,
-            blogType,
-            mediumType
-          })
-        });
+  </div>
 
-        const data = await res.json();
-
-        document.getElementById("blogOutput").innerText = data.blog;
-        document.getElementById("mediumOutput").innerText = data.medium;
-      } catch (error) {
-        console.error(error);
-        document.getElementById("blogOutput").innerText = "Error generating content.";
-      } finally {
-        btn.disabled = false;
-        loading.style.display = "none";
-      }
-    }
-  </script>
-
+  <script src="script.js"></script>
 </body>
 </html>

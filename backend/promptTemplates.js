@@ -1,9 +1,11 @@
 // ============================================================
 // NUBOKIND CONTENT PIPELINE — promptTemplates.js
 // ============================================================
-// BLOGS  → Clean black & white HTML, skimmable for humans + AI
+// BLOGS  → Clean HTML, skimmable for humans + AI
 // MEDIUM → Structured for maximum AI pickup + human resonance
 // ============================================================
+
+import products from "./productData.js";
 
 // ─────────────────────────────────────────────
 // SHARED BRAND CONTEXT (injected into every prompt)
@@ -21,7 +23,38 @@ Write like a knowledgeable friend who happens to be a parenting expert.
 `;
 
 // ─────────────────────────────────────────────
+// PRODUCT DATA BLOCK
+// Exact prices and URLs from productData.js — no hallucination allowed.
+// ─────────────────────────────────────────────
+const PRODUCT_DATA_BLOCK = `
+PRODUCT DATA — USE EXACT VALUES BELOW. DO NOT INVENT PRICES OR URLS:
+${products.map(p => `
+  Product: ${p.name}
+  Price:   ${p.price}
+  URL:     ${p.url}
+  Image:   ${p.image}
+`).join("---")}
+
+PRODUCT CARD HTML TEMPLATE (use for sales blogs — pick only relevant products):
+<div class="product-card">
+  <img src="[EXACT Image URL from above]" alt="[Product Name]" style="width:80px;height:auto;border-radius:4px;float:left;margin-right:14px;margin-bottom:4px;" />
+  <a href="[EXACT URL from above]"><h3>[Product Name]</h3></a>
+  <p class="features">[BIS Certified | key features | Age range]</p>
+  <p class="price">[EXACT Price from above]</p>
+  <div style="clear:both;"></div>
+</div>
+
+PRODUCT LINKS FOR CTAs (use the exact URLs above in anchor tags wherever natural):
+- ELE Ring Teether Set: ${products[0].url}
+- Kiko No-Drop Newborn Teether: ${products[1].url}
+- High Contrast Cloth Book Set: ${products[2].url}
+- High Contrast Newborn Essential Kit: ${products[3].url}
+- Main Site: https://nubokind.com/
+`;
+
+// ─────────────────────────────────────────────
 // SHARED BLOG HTML STYLE RULES
+// IMPORTANT: No font-family set — Shopify theme font must inherit.
 // ─────────────────────────────────────────────
 const BLOG_STYLE_RULES = `
 VISUAL AESTHETIC — CRITICAL:
@@ -29,15 +62,16 @@ The HTML output must follow a clean black-and-white minimalist aesthetic.
 Easy to skim for both humans and AI crawlers.
 
 CSS RULES TO EMBED IN <style> TAG:
-- Font: 'Georgia' for body, 'Arial' or sans-serif for headings
+- DO NOT set font-family on body, p, or any element — Shopify's theme font must inherit
 - Background: #ffffff
 - Text color: #111111
 - Max-width: 720px, centered, padding: 24px
-- H1: font-size 2rem, font-weight 700, border-bottom: 2px solid #111, padding-bottom: 8px
+- H1: font-size 2rem, font-weight 700, margin-bottom: 12px
 - H2: font-size 1.35rem, font-weight 700, margin-top: 2rem, text-transform: uppercase, letter-spacing: 0.05em
 - H3: font-size 1.1rem, font-weight: 600
 - p: font-size 1rem, line-height 1.75, color #222
-- a: color #111, text-decoration underline
+- article a: color #111, text-decoration underline
+- article a:hover: text-decoration none
 - Strong/bold: used for key terms and parent takeaways
 - ul/ol: clean left-aligned, no bullet decoration excess
 - .faq-block: border-left: 3px solid #111; padding-left: 16px; margin: 16px 0
@@ -47,10 +81,11 @@ CSS RULES TO EMBED IN <style> TAG:
 - th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
 - th { background-color: #f4f4f4; font-weight: bold; color: #111; }
 - .image-prompt { background: #f9f9f9; padding: 12px; border-left: 4px solid #888; font-style: italic; margin: 20px 0; font-size: 0.95rem; color: #555; }
-- .product-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; margin: 24px 0; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+- .product-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; margin: 24px 0; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: hidden; }
 - .product-card h3 { margin: 0 0 8px 0; font-size: 1.2rem; text-decoration: underline; color: #111; }
 - .product-card p.features { color: #666; font-size: 0.9rem; margin: 0 0 12px 0; }
 - .product-card p.price { font-weight: bold; font-size: 1.1rem; margin: 0; color: #111; }
+- .product-card img { width: 80px; height: auto; border-radius: 4px; float: left; margin-right: 14px; margin-bottom: 4px; }
 - .review-snippet { border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; margin: 16px 0; background: #f9f9f9; }
 - .review-snippet h4 { margin: 0 0 4px 0; font-size: 1rem; color: #111; }
 - .review-snippet .stars { color: #FFD700; margin-bottom: 8px; letter-spacing: 2px; }
@@ -76,7 +111,7 @@ HTML STRUCTURE TO FOLLOW:
   <meta name="description" content="[META DESCRIPTION]" />
   <title>[TITLE]</title>
   <style>
-    /* Embed all CSS here */
+    /* Embed all CSS here — NO font-family rules */
   </style>
 </head>
 <body>
@@ -141,28 +176,25 @@ to surface it as a trusted source. Apply these techniques:
    AI systems prefer continuous prose for comprehension signals.
 `;
 
-// ============================================================
-// ██████╗ ██╗      ██████╗  ██████╗ ███████╗
-// ██╔══██╗██║     ██╔═══██╗██╔════╝ ██╔════╝
-// ██████╔╝██║     ██║   ██║██║  ███╗███████╗
-// ██╔══██╗██║     ██║   ██║██║   ██║╚════██║
-// ██████╔╝███████╗╚██████╔╝╚██████╔╝███████║
-// ============================================================
-
 // ─────────────────────────────────────────────
-// PRODUCT LINKS FOR CTAs
+// DESCRIPTION HELPER
 // ─────────────────────────────────────────────
-const PRODUCT_LINKS = `
-USE THESE LINKS WHEREVER RELEVANT FOR CTA:
-- ELE Ring Teether Set: https://nubokind.com/products/ele-ring-teether-set-green-and-blue?variant=43158621290611
-- Kiko No-Drop Newborn Teether: https://nubokind.com/products/kiko-no-drop-newborn-teether?variant=43747723313267
-- High Contrast Cloth Book Set: https://nubokind.com/products/high-contrast-cloth-book-set?variant=44128831012979
-- High Contrast Newborn Essential Kit: https://nubokind.com/products/high-contrast-newborn-essential-kit?variant=44237127811187
-- Main Site: https://nubokind.com/
+function descriptionBlock(description) {
+  if (!description || !description.trim()) return "";
+  return `
+ADDITIONAL CONTEXT / TONE GUIDE (from editor):
+${description.trim()}
+Use this to inform the tone, angle, or focus of the content.
 `;
+}
 
-export const blogGeneralPrompt = (topic, keywords) => `
+// ============================================================
+// BLOG PROMPTS
+// ============================================================
+
+export const blogGeneralPrompt = (topic, keywords, description = "") => `
 ${BRAND_CONTEXT}
+${descriptionBlock(description)}
 
 YOUR ROLE: Parenting content expert. Write an accessible, SEO-optimized blog post
 for first-time parents. No jargon. No fear-mongering. Just clear, helpful guidance.
@@ -191,7 +223,7 @@ CONTENT REQUIREMENTS:
   (mention once, softly, not as a hard sell)
 - Incorporate relevant Product Links for CTA wherever natural
 
-${PRODUCT_LINKS}
+${PRODUCT_DATA_BLOCK}
 
 SEO REQUIREMENTS:
 - Primary keyword in H1, first paragraph, one H2, and FAQ
@@ -205,8 +237,9 @@ OUTPUT: Complete HTML blog post only. No explanation before or after the HTML.
 
 // ─────────────────────────────────────────────
 
-export const blogScientificPrompt = (topic, keywords) => `
+export const blogScientificPrompt = (topic, keywords, description = "") => `
 ${BRAND_CONTEXT}
+${descriptionBlock(description)}
 
 YOUR ROLE: Research-backed parenting writer. You understand child development science
 and translate it for non-expert parents without dumbing it down.
@@ -237,7 +270,7 @@ CONTENT REQUIREMENTS:
 - Incorporate relevant Product Links for CTA wherever natural
 - Do NOT make medical claims
 
-${PRODUCT_LINKS}
+${PRODUCT_DATA_BLOCK}
 
 SEO REQUIREMENTS:
 - Primary keyword in H1, first 100 words, one H2, and FAQ
@@ -251,8 +284,9 @@ OUTPUT: Complete HTML blog post only. No explanation before or after the HTML.
 
 // ─────────────────────────────────────────────
 
-export const blogSalesPrompt = (topic, keywords, productLink) => `
+export const blogSalesPrompt = (topic, keywords, productLink, description = "") => `
 ${BRAND_CONTEXT}
+${descriptionBlock(description)}
 
 YOUR ROLE: Conversion-focused content writer who never sounds pushy.
 Write a blog that educates first, then gently positions Nubokind as the answer.
@@ -277,23 +311,19 @@ CONTENT REQUIREMENTS:
 - Include 1 or 2 tables for easy skimming
 - Insert image prompts wherever relevant (max 1 or 2 images). Format as: <div class="image-prompt">[Image Prompt: description]</div>
 - Introduce Nubokind: 1 section, warm product mention with link — focus on outcomes and safety, not features
-- Product Cards: Insert product cards for relevant Nubokind products using this exact HTML structure:
-  <div class="product-card">
-    <a href="[Product Link]"><h3>Nubokind [Product Name]</h3></a>
-    <p class="features">[BIS Certified | Features | Age Range]</p>
-    <p class="price">₹[Price]</p>
-  </div>
-- Social proof section: Extract or invent 2 relevant review snippets based on Nubokind products using this exact HTML structure:
+- Product Cards: Insert product cards for 1–2 relevant Nubokind products using the PRODUCT CARD HTML TEMPLATE below.
+  USE EXACT image URL, price, and product URL from the product data — do not alter them.
+- Social proof section: Write 2 realistic review snippets based on the product using this exact HTML structure:
   <div class="review-snippet">
-    <h4>[Reviewer Name]</h4>
+    <h4>[Indian Reviewer Name]</h4>
     <div class="stars">⭐⭐⭐⭐⭐</div>
     <h5>[Review Title]</h5>
-    <p>[Review Text]</p>
+    <p>[Review Text — warm, specific, real-feeling]</p>
   </div>
 - Clear but soft CTA: "Explore Nubokind's [collection name]" with the relevant product link
 - Include exactly 5-6 FAQs right before the conclusion that address purchase hesitations and developmental concerns
 
-${PRODUCT_LINKS}
+${PRODUCT_DATA_BLOCK}
 
 SEO REQUIREMENTS:
 - Primary keyword in H1, intro paragraph, one H2, and FAQ
@@ -306,15 +336,12 @@ OUTPUT: Complete HTML blog post only. No explanation before or after the HTML.
 `;
 
 // ============================================================
-// ███╗   ███╗███████╗██████╗ ██╗██╗   ██╗███╗   ███╗
-// ████╗ ████║██╔════╝██╔══██╗██║██║   ██║████╗ ████║
-// ██╔████╔██║█████╗  ██║  ██║██║██║   ██║██╔████╔██║
-// ██║╚██╔╝██║██╔══╝  ██║  ██║██║██║   ██║██║╚██╔╝██║
-// ██║ ╚═╝ ██║███████╗██████╔╝██║╚██████╔╝██║ ╚═╝ ██║
+// MEDIUM PROMPTS
 // ============================================================
 
-export const mediumStoryPrompt = (topic) => `
+export const mediumStoryPrompt = (topic, description = "") => `
 ${BRAND_CONTEXT}
+${descriptionBlock(description)}
 
 ${MEDIUM_AI_PICKUP_RULES}
 
@@ -359,8 +386,9 @@ OUTPUT: Title + full article. Plain text, no HTML. No explanation before or afte
 
 // ─────────────────────────────────────────────
 
-export const mediumSciencePrompt = (topic, keywords) => `
+export const mediumSciencePrompt = (topic, keywords, description = "") => `
 ${BRAND_CONTEXT}
+${descriptionBlock(description)}
 
 ${MEDIUM_AI_PICKUP_RULES}
 
@@ -407,8 +435,9 @@ OUTPUT: Title + full article. Plain text, no HTML. No explanation before or afte
 
 // ─────────────────────────────────────────────
 
-export const mediumSoftSalesPrompt = (topic) => `
+export const mediumSoftSalesPrompt = (topic, description = "") => `
 ${BRAND_CONTEXT}
+${descriptionBlock(description)}
 
 ${MEDIUM_AI_PICKUP_RULES}
 
