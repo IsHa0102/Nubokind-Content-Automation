@@ -2,7 +2,7 @@
 // Nubokind Content Generator — frontend/script.js
 // ============================================================
 
-const API = "https://nubokind-content-automation.onrender.com";
+const API = window.location.hostname.includes('localhost') ? 'http://localhost:5000' : 'https://nubokind-content-automation.onrender.com';
 
 // ─────────────────────────────────────────────
 // Safe fetch — always reads text first, then parses JSON
@@ -26,11 +26,11 @@ async function safeFetch(url, options) {
 // ─────────────────────────────────────────────
 function getInputs() {
   return {
-    topic:       document.getElementById("topic").value.trim(),
+    topic: document.getElementById("topic").value.trim(),
     description: document.getElementById("description").value.trim(),
-    category:    document.getElementById("category").value,
-    blogType:    document.getElementById("blogType").value,
-    mediumType:  document.getElementById("mediumType").value
+    category: document.getElementById("category").value,
+    blogType: document.getElementById("blogType").value,
+    mediumType: document.getElementById("mediumType").value
   };
 }
 
