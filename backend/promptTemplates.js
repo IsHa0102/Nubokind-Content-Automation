@@ -143,6 +143,28 @@ HTML STRUCTURE TO FOLLOW:
 `;
 
 // ─────────────────────────────────────────────
+// STRUCTURED OUTPUT BLOCK
+// Appended to every blog prompt so Claude returns
+// meta fields separately — parsed by server.js.
+// ─────────────────────────────────────────────
+const STRUCTURED_OUTPUT_RULES = `
+STRUCTURED OUTPUT — MANDATORY:
+After the closing </html> tag, output a METADATA block EXACTLY as shown below.
+Fill in every field. Do NOT omit or rename any field.
+
+<!--METADATA_START-->
+META_TITLE: [60–70 characters. SEO + AEO optimized. Include primary keyword + brand name.]
+META_DESCRIPTION: [140–160 characters. Conversational, answer-first, includes primary keyword. Optimized for AI snippet pickup.]
+EXCERPT: [2–3 lines. Hook the reader. Address a parent pain point or curiosity. No HTML tags.]
+<!--METADATA_END-->
+
+Rules for each field:
+- META_TITLE: Must be ≤70 characters. Include the primary keyword near the front. Do not use pipes or dashes excessively.
+- META_DESCRIPTION: Must be ≤160 characters. Write as if answering a question a parent would Google or ask an AI assistant.
+- EXCERPT: Plain text only. 2–3 punchy sentences. No HTML. Should make a parent want to keep reading.
+`;
+
+// ─────────────────────────────────────────────
 // SHARED MEDIUM RULES
 // ─────────────────────────────────────────────
 const MEDIUM_AI_PICKUP_RULES = `
@@ -180,8 +202,8 @@ to surface it as a trusted source. Apply these techniques:
 // DESCRIPTION HELPER
 // ─────────────────────────────────────────────
 function descriptionBlock(description) {
-  if (!description || !description.trim()) return "";
-  return `
+   if (!description || !description.trim()) return "";
+   return `
 ADDITIONAL CONTEXT / TONE GUIDE (from editor):
 ${description.trim()}
 Use this to inform the tone, angle, or focus of the content.
@@ -232,7 +254,9 @@ SEO REQUIREMENTS:
 
 ${BLOG_STYLE_RULES}
 
-OUTPUT: Complete HTML blog post only. No explanation before or after the HTML.
+${STRUCTURED_OUTPUT_RULES}
+
+OUTPUT: Complete HTML blog post, then the METADATA block. No explanation before or after.
 `;
 
 // ─────────────────────────────────────────────
@@ -279,7 +303,9 @@ SEO REQUIREMENTS:
 
 ${BLOG_STYLE_RULES}
 
-OUTPUT: Complete HTML blog post only. No explanation before or after the HTML.
+${STRUCTURED_OUTPUT_RULES}
+
+OUTPUT: Complete HTML blog post, then the METADATA block. No explanation before or after.
 `;
 
 // ─────────────────────────────────────────────
@@ -299,29 +325,48 @@ ${keywords.join(", ")}
 PRODUCT LINK: ${productLink}
 
 BLOG TYPE: SALES (soft conversion)
-- Structure: Problem → Emotional resonance → Education → Solution (Nubokind)
-- Introduce the product or Nubokind collection by paragraph 3 at the latest
-- Frame product as a natural solution discovered through the educational journey
-- Persuasion through value, not pressure
+- Structure: Hook → Product Cards (above the fold) → Problem + Emotional resonance → Education → Social Proof → CTA
+- CRITICAL: Product cards MUST appear in the FIRST or SECOND section — before the reader scrolls.
+  This is the most important conversion rule. Do not bury them after paragraphs of education.
+- Frame product as a natural, trusted solution — not a hard sell
+- Persuasion through value and social proof, not pressure
 
 CONTENT REQUIREMENTS:
-- Hook: Open with a relatable parent frustration or observation (1 paragraph)
-- Validate the problem: 1 paragraph showing you understand the struggle
-- Educate: 2–3 sections explaining why this matters for baby development
-- Include 1 or 2 tables for easy skimming
-- Insert image prompts wherever relevant (max 1 or 2 images). Format as: <div class="image-prompt">[Image Prompt: description]</div>
-- Introduce Nubokind: 1 section, warm product mention with link — focus on outcomes and safety, not features
-- Product Cards: Insert product cards for 1–2 relevant Nubokind products using the PRODUCT CARD HTML TEMPLATE below.
-  USE EXACT image URL, price, and product URL from the product data — do not alter them.
-- Social proof section: Write 2 realistic review snippets based on the product using this exact HTML structure:
+
+SECTION 1 — HOOK + IMMEDIATE PRODUCT INTRODUCTION (ABOVE THE FOLD):
+- Open with 1 short relatable parent moment (2–3 sentences max)
+- Immediately follow with 1–2 product cards using the PRODUCT CARD HTML TEMPLATE
+- A one-line bridge like: "Here's what actually helped us — and thousands of Indian parents."
+- This section must appear BEFORE any long educational paragraphs
+
+SECTION 2 — WHY THIS MATTERS (Education, 2–3 paragraphs):
+- Validate the problem and explain why it matters for baby development
+- Keep it warm and research-lite — no heavy science here
+
+SECTION 3 — WHAT TO LOOK FOR (2–3 paragraphs or a table):
+- Help parents make a smart decision
+- Include 1 table comparing what good vs. poor quality products look like
+- Naturally weave in how Nubokind's products meet these criteria
+
+SECTION 4 — SOCIAL PROOF:
+- Write 2 realistic review snippets from Indian parents using this exact HTML:
   <div class="review-snippet">
     <h4>[Indian Reviewer Name]</h4>
     <div class="stars">⭐⭐⭐⭐⭐</div>
     <h5>[Review Title]</h5>
-    <p>[Review Text — warm, specific, real-feeling]</p>
+    <p>[Review Text — warm, specific, real-feeling. 2–3 sentences.]</p>
   </div>
+
+SECTION 5 — QUICK TIPS / BUYING GUIDE:
+- 4–6 bullet points helping parents choose or use the product category
+
+SECTION 6 — FAQ (exactly 5–6 questions):
+- Address purchase hesitations and developmental concerns
+- End each answer with a soft nudge back to the product
+
+SECTION 7 — CONCLUSION + CTA:
+- Warm summary (2–3 sentences)
 - Clear but soft CTA: "Explore Nubokind's [collection name]" with the relevant product link
-- Include exactly 5-6 FAQs right before the conclusion that address purchase hesitations and developmental concerns
 
 ${PRODUCT_DATA_BLOCK}
 
@@ -332,7 +377,9 @@ SEO REQUIREMENTS:
 
 ${BLOG_STYLE_RULES}
 
-OUTPUT: Complete HTML blog post only. No explanation before or after the HTML.
+${STRUCTURED_OUTPUT_RULES}
+
+OUTPUT: Complete HTML blog post, then the METADATA block. No explanation before or after.
 `;
 
 // ============================================================

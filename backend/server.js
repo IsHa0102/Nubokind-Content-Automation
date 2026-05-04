@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { fileURLToPath } from "url";
 import keywordMap from "./keywordMap.js";
 
@@ -28,6 +29,10 @@ app.use(express.static(path.join(__dirname, "../frontend")));
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY
+});
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
 });
 
 // ===== IN-MEMORY HISTORY =====
@@ -85,6 +90,92 @@ function cleanBlogHtml(html) {
   return html;
 }
 
+// ===== HELPER: Parse metadata block from Claude's blog output =====
+// Claude appends a <!--METADATA_START--> ... <!--METADATA_END--> block after the HTML.
+// This function extracts it, returning { htmlContent, title, metaTitle, metaDescription, excerpt }.
+function parseBlogOutput(rawText) {
+  // Split on the metadata delimiter
+  const metaStartTag = "<!--METADATA_START-->";
+  const metaEndTag = "<!--METADATA_END-->";
+
+  const metaStart = rawText.indexOf(metaStartTag);
+  const metaEnd = rawText.indexOf(metaEndTag);
+
+  let htmlContent = rawText;
+  let metaTitle = "";
+  let metaDescription = "";
+  let excerpt = "";
+
+  if (metaStart !== -1 && metaEnd !== -1) {
+    // Everything before the metadata block is the HTML content
+    htmlContent = rawText.slice(0, metaStart).trim();
+
+    const metaBlock = rawText.slice(metaStart + metaStartTag.length, metaEnd).trim();
+
+    // Parse each field from the metadata block
+    const extractField = (fieldName) => {
+      const regex = new RegExp(`^${fieldName}:\\s*(.+)$`, "m");
+      const match = metaBlock.match(regex);
+      return match ? match[1].trim() : "";
+    };
+
+    metaTitle = extractField("META_TITLE");
+    metaDescription = extractField("META_DESCRIPTION");
+    excerpt = extractField("EXCERPT");
+  } else {
+    // Fallback: Claude didn't emit the block — log a warning, continue gracefully
+    console.warn("METADATA block not found in Claude output. Fields will be empty.");
+  }
+
+  // Extract the page <title> from the HTML for the top-level `title` field
+  const titleMatch = htmlContent.match(/<title>([\s\S]*?)<\/title>/i);
+  const title = titleMatch ? titleMatch[1].trim() : "";
+
+  // Enforce character limits (trim silently if Claude over-ran)
+  if (metaTitle.length > 70) metaTitle = metaTitle.slice(0, 70).trimEnd();
+  if (metaDescription.length > 160) metaDescription = metaDescription.slice(0, 160).trimEnd();
+
+  return { htmlContent, title, metaTitle, metaDescription, excerpt };
+}
+
+// ===== HELPER: Generate thumbnail via OpenAI DALL-E =====
+// Returns an image URL string, or null on failure (non-fatal — blog still returns).
+async function generateThumbnail(topic, keywords) {
+  if (!process.env.OPENAI_API_KEY) {
+    console.warn("OPENAI_API_KEY not set — skipping thumbnail generation.");
+    return null;
+  }
+
+  const keywordSnippet = Array.isArray(keywords) && keywords.length
+    ? keywords.slice(0, 4).join(", ")
+    : "";
+
+  const imagePrompt = [
+    `A clean, modern, warm thumbnail image for a parenting blog about: "${topic}".`,
+    keywordSnippet ? `Key themes: ${keywordSnippet}.` : "",
+    "Indian family context. Soft natural lighting. Minimal background.",
+    "Baby or toddler present. No text overlays. No logos.",
+    "Style: editorial, lifestyle photography, warm tones."
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  try {
+    const response = await openai.images.generate({
+      model: "dall-e-3",
+      prompt: imagePrompt,
+      n: 1,
+      size: "1792x1024",   // 16:9 landscape — ideal for blog thumbnails
+      quality: "standard"
+    });
+
+    return response.data[0]?.url ?? null;
+  } catch (err) {
+    console.error("Thumbnail generation failed (non-fatal):", err.message);
+    return null;
+  }
+}
+
 // ===== GET /history =====
 app.get("/history", (req, res) => {
   // Return history newest-first, without full content (just metadata) for list
@@ -110,17 +201,31 @@ app.get("/history/:id", (req, res) => {
 });
 
 // ===== POST /generate-blog =====
+// Response shape:
+// { title, metaTitle, metaDescription, excerpt, content, thumbnailUrl }
 app.post("/generate-blog", async (req, res) => {
   try {
     const { topic, category, blogType, description } = req.body;
     const keywords = keywordMap[category] || [];
 
     const blogPrompt = selectBlogPrompt(topic, keywords, blogType || "general", description);
-    const blogText = cleanBlogHtml(await callClaude(blogPrompt));
 
-    console.log("BLOG generated for:", topic);
+    // Run Claude + thumbnail generation in parallel for speed
+    const [rawBlogText, thumbnailUrl] = await Promise.all([
+      callClaude(blogPrompt),
+      generateThumbnail(topic, keywords)
+    ]);
 
-    // Save to history
+    // Parse structured fields out of Claude's response
+    const { htmlContent, title, metaTitle, metaDescription, excerpt } =
+      parseBlogOutput(rawBlogText);
+
+    // Clean the HTML portion for Shopify compatibility
+    const content = cleanBlogHtml(htmlContent);
+
+    console.log("BLOG generated for:", topic, "| metaTitle:", metaTitle || "(empty)");
+
+    // Save to history (store enriched fields for future retrieval)
     history.push({
       id: Date.now(),
       timestamp: new Date().toISOString(),
@@ -129,11 +234,24 @@ app.post("/generate-blog", async (req, res) => {
       blogType: blogType || "general",
       mediumType: null,
       description: description || "",
-      blog: blogText,
-      article: null
+      blog: content,
+      article: null,
+      // New enriched fields
+      title,
+      metaTitle,
+      metaDescription,
+      excerpt,
+      thumbnailUrl: thumbnailUrl || ""
     });
 
-    res.json({ blog: blogText });
+    res.json({
+      title,
+      metaTitle,
+      metaDescription,
+      excerpt,
+      content,
+      thumbnailUrl: thumbnailUrl || ""
+    });
   } catch (error) {
     console.error("ERROR /generate-blog:", error);
     res.status(500).json({ error: "Something went wrong generating the blog" });
@@ -180,10 +298,13 @@ app.post("/generate", async (req, res) => {
     const blogPrompt = selectBlogPrompt(topic, keywords, blogType || "general", description);
     const mediumPrompt = selectMediumPrompt(topic, keywords, mediumType || "story", description);
 
-    const [blogText, articleText] = await Promise.all([
-      callClaude(blogPrompt).then(cleanBlogHtml),
+    const [rawBlogText, articleText] = await Promise.all([
+      callClaude(blogPrompt),
       callClaude(mediumPrompt)
     ]);
+
+    const { htmlContent } = parseBlogOutput(rawBlogText);
+    const blogText = cleanBlogHtml(htmlContent);
 
     console.log("BLOG+ARTICLE generated for:", topic);
 
