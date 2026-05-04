@@ -26,15 +26,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../frontend")));
 
-// Catch-all: serve index.html for any non-API route (required for Render)
-app.get("*", (req, res, next) => {
-  // Let API routes pass through
-  if (req.path.startsWith("/generate") || req.path.startsWith("/history")) {
-    return next();
-  }
-  res.sendFile(path.join(__dirname, "../frontend/index.html"));
-});
-
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY
 });
@@ -220,6 +211,10 @@ app.post("/generate", async (req, res) => {
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err);
   res.status(500).json({ error: err.message || "Internal server error" });
+});
+
+app.get("/*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/index.html"));
 });
 
 // ===== START SERVER =====
