@@ -2,7 +2,8 @@
 // Nubokind Content Generator — frontend/script.js
 // ============================================================
 
-const API = window.location.hostname.includes('localhost') ? 'http://localhost:5000' : 'https://nubokind-content-automation.onrender.com';
+const BASE_URL = window.location.origin;
+const API = BASE_URL;
 
 // ─────────────────────────────────────────────
 // Safe fetch — always reads text first, then parses JSON

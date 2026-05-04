@@ -25,7 +25,13 @@ const __dirname = path.dirname(__filename);
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../frontend")));
-app.get("/", (req, res) => {
+
+// Catch-all: serve index.html for any non-API route (required for Render)
+app.get("*", (req, res, next) => {
+  // Let API routes pass through
+  if (req.path.startsWith("/generate") || req.path.startsWith("/history")) {
+    return next();
+  }
   res.sendFile(path.join(__dirname, "../frontend/index.html"));
 });
 
@@ -217,6 +223,7 @@ app.use((err, req, res, next) => {
 });
 
 // ===== START SERVER =====
-app.listen(5000, () => {
-  console.log("🚀 Server running at http://localhost:5000");
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
