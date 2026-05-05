@@ -13,7 +13,8 @@ import {
   blogSalesPrompt,
   mediumStoryPrompt,
   mediumSciencePrompt,
-  mediumSoftSalesPrompt
+  mediumSoftSalesPrompt,
+  buildThumbnailPrompt
 } from "./promptTemplates.js";
 
 dotenv.config();
@@ -140,25 +141,17 @@ function parseBlogOutput(rawText) {
 
 // ===== HELPER: Generate thumbnail via OpenAI DALL-E =====
 // Returns an image URL string, or null on failure (non-fatal — blog still returns).
-async function generateThumbnail(topic, keywords) {
+// category drives which Nubokind product scene is used — see buildThumbnailPrompt in promptTemplates.js.
+async function generateThumbnail(topic, category, keywords) {
   if (!process.env.OPENAI_API_KEY) {
     console.warn("OPENAI_API_KEY not set — skipping thumbnail generation.");
     return null;
   }
 
-  const keywordSnippet = Array.isArray(keywords) && keywords.length
-    ? keywords.slice(0, 4).join(", ")
-    : "";
+  // Build a category-aware, product-grounded realistic image prompt
+  const imagePrompt = buildThumbnailPrompt(topic, category, keywords);
 
-  const imagePrompt = [
-    `A clean, modern, warm thumbnail image for a parenting blog about: "${topic}".`,
-    keywordSnippet ? `Key themes: ${keywordSnippet}.` : "",
-    "Indian family context. Soft natural lighting. Minimal background.",
-    "Baby or toddler present. No text overlays. No logos.",
-    "Style: editorial, lifestyle photography, warm tones."
-  ]
-    .filter(Boolean)
-    .join(" ");
+  console.log("[Thumbnail] Prompt length:", imagePrompt.length, "chars | category:", category);
 
   try {
     const response = await openai.images.generate({
@@ -213,7 +206,7 @@ app.post("/generate-blog", async (req, res) => {
     // Run Claude + thumbnail generation in parallel for speed
     const [rawBlogText, thumbnailUrl] = await Promise.all([
       callClaude(blogPrompt),
-      generateThumbnail(topic, keywords)
+      generateThumbnail(topic, category, keywords)
     ]);
 
     // Parse structured fields out of Claude's response

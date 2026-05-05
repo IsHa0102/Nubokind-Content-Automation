@@ -482,6 +482,131 @@ OUTPUT: Title + full article. Plain text, no HTML. No explanation before or afte
 
 // ─────────────────────────────────────────────
 
+// ============================================================
+// THUMBNAIL IMAGE PROMPT BUILDER
+// ============================================================
+// Generates a highly realistic, candid-style image prompt for
+// OpenAI DALL-E based on topic, category, and keywords.
+// Category drives which Nubokind product appears in the scene.
+// ============================================================
+
+// ─────────────────────────────────────────────
+// PRODUCT VISUAL GROUNDING
+// Exact descriptions derived from product reference images.
+// Used to prevent hallucinated toy shapes/colors.
+// ─────────────────────────────────────────────
+const PRODUCT_VISUALS = {
+  teethers: {
+    products: [
+      {
+        name: "Ele Ring Teether",
+        description:
+          "a ring-shaped silicone teether with a soft elephant head attached — pastel blue and beige colors, gentle rounded elephant ears, smooth circular ring body, about palm-sized"
+      },
+      {
+        name: "Kiko No-Drop Teether",
+        description:
+          "a small green silicone teether shaped like a gentle cartoon character with a wide flat grip — bright leaf-green color, small enough to fit in a newborn's fist, smooth rounded edges, no sharp angles"
+      }
+    ],
+    scene:
+      "An Indian baby (3–8 months old) lying on a soft cotton mat on the floor, chewing or mouthing the teether with both hands wrapped around it. The baby is wearing a simple cotton onesie. One parent (Indian mother or father) is sitting nearby cross-legged, gently watching. Late morning, natural window light. A plant or simple home corner visible softly out of focus in the background."
+  },
+
+  books_kit: {
+    products: [
+      {
+        name: "High Contrast Cloth Book",
+        description:
+          "a small square soft cloth book with bold black and white high-contrast patterns — simple geometric shapes and animal outlines printed on white fabric pages, about the size of a hand"
+      },
+      {
+        name: "Newborn Gift Kit",
+        description:
+          "a set of soft black and white Montessori developmental toys — includes a small cloth book and a couple of high contrast sensory cards, laid out gently on a mat"
+      }
+    ],
+    scene:
+      "An Indian newborn (0–4 months) during tummy time on a soft play mat. The cloth book is open and propped in front of the baby at eye level. An Indian parent (mother or father) is lying on their stomach at the same level, pointing to the high-contrast pages with one finger, smiling softly. The setting is a home living room floor — light wooden floor or a simple carpet. Natural daylight from a nearby window. The scene feels unhurried and tender."
+  },
+
+  all_products: {
+    products: [
+      {
+        name: "Ele Ring Teether and Cloth Book",
+        description:
+          "a pastel blue ring-shaped elephant silicone teether placed next to a small square black-and-white cloth book with geometric patterns — both visible on a play mat"
+      }
+    ],
+    scene:
+      "An Indian baby (4–9 months) sitting upright with support on a soft cotton play mat, exploring a teether in one hand and reaching toward a cloth book spread open nearby. An Indian parent is seated close behind, gently supporting the baby's back while watching with quiet delight. Home environment — a simple living room with warm neutral walls, afternoon light coming through sheer curtains. The atmosphere is calm, everyday, and real."
+  }
+};
+
+// Normalize incoming category keys to match PRODUCT_VISUALS keys
+function resolveCategory(category) {
+  if (!category) return "all_products";
+  const c = category.toLowerCase();
+  if (c.includes("teether")) return "teethers";
+  if (c.includes("book") || c.includes("kit")) return "books_kit";
+  return "all_products";
+}
+
+/**
+ * Builds a final DALL-E image prompt string for a Nubokind Shopify blog thumbnail.
+ *
+ * @param {string} topic      - Blog topic (e.g. "when do babies start teething")
+ * @param {string} category   - Category key from keywordMap (teethers / books_kit / all_products)
+ * @param {string[]} keywords - Keyword array (used for scene mood hints)
+ * @returns {string}          - Final prompt string ready to pass to OpenAI images.generate()
+ */
+export function buildThumbnailPrompt(topic, category, keywords = []) {
+  const resolved = resolveCategory(category);
+  const visual = PRODUCT_VISUALS[resolved];
+
+  // Pick the primary product for this category
+  const primaryProduct = visual.products[0];
+
+  // Pull 1–2 relevant keywords as mood hints (avoid stuffing)
+  const moodHint =
+    Array.isArray(keywords) && keywords.length
+      ? keywords.slice(0, 2).join(" and ")
+      : "";
+
+  return [
+    // Scene & subject
+    visual.scene,
+
+    // Product grounding — the most critical realism constraint
+    `The product visible in the scene is the ${primaryProduct.name}: ${primaryProduct.description}.`,
+    "The product MUST match this description exactly — do NOT invent a different toy shape, color, or design.",
+
+    // Mood / topic tie-in
+    moodHint
+      ? `The scene visually conveys the feeling of: ${moodHint}.`
+      : "",
+
+    // Photography realism rules
+    "Photography style: candid lifestyle documentary. Shot on a mirrorless camera with a 50mm or 35mm lens.",
+    "Exposure: slightly soft, naturally lit. Color grading: warm but NOT filtered — realistic skin tones for South Asian complexions.",
+    "Depth of field: background gently out of focus but recognizable as a real home. No studio backdrop. No fake bokeh.",
+
+    // Strict anti-cinematic / anti-AI-look constraints
+    "NO dramatic cinematic lighting. NO rim lights. NO artificial fill lights. NO lens flares.",
+    "NO stock-photo perfection. Slight shadow under the baby, minor fabric wrinkle, natural hair — all fine and preferred.",
+    "NO text, watermarks, logos, or overlays anywhere in the image.",
+    "NO toys, objects, or colors that were not described above — strict product accuracy required.",
+
+    // Output spec
+    "Aspect ratio: 16:9 landscape. Composition: close-to-mid shot. Focus on baby and product interaction.",
+    "The image must look like a real photograph from a real Indian home — warm, loving, everyday."
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+// ─────────────────────────────────────────────
+
 export const mediumSoftSalesPrompt = (topic, description = "") => `
 ${BRAND_CONTEXT}
 ${descriptionBlock(description)}
