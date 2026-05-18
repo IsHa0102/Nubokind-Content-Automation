@@ -184,6 +184,17 @@
       transform: translateY(-1px);
     }
 
+    .btn-infographic {
+      background: #2a1e2e;
+      color: #d08ad0;
+      border: 1px solid #5a3a66;
+    }
+
+    .btn-infographic:hover:not(:disabled) {
+      background: #361e3e;
+      transform: translateY(-1px);
+    }
+
     .btn-copy {
       background: transparent;
       color: #888;
@@ -414,8 +425,13 @@
       color: #444;
     }
 
-    .seo-char-count.warn { color: #cc8844; }
-    .seo-char-count.ok   { color: #5a9a5a; }
+    .seo-char-count.warn {
+      color: #cc8844;
+    }
+
+    .seo-char-count.ok {
+      color: #5a9a5a;
+    }
 
     .seo-value {
       font-size: 0.85rem;
@@ -457,8 +473,47 @@
       white-space: nowrap;
     }
 
-    .btn-copy-seo:hover  { color: #ccc; border-color: #555; }
-    .btn-copy-seo.copied { color: #6abf6a; border-color: #3a663a; }
+    .btn-copy-seo:hover {
+      color: #ccc;
+      border-color: #555;
+    }
+
+    .btn-copy-seo.copied {
+      color: #6abf6a;
+      border-color: #3a663a;
+    }
+
+    /* ── Infographic Output ── */
+    .infographic-preview-wrap {
+      display: none;
+      margin-top: 14px;
+      text-align: center;
+    }
+
+    .infographic-preview-wrap.visible {
+      display: block;
+    }
+
+    .infographic-preview {
+      width: 100%;
+      max-width: 480px;
+      border-radius: 10px;
+      border: 1px solid #2a2a33;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .infographic-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge-infographic {
+      background: #2a1e3a;
+      color: #c080d0;
+    }
   </style>
 </head>
 
@@ -512,10 +567,23 @@
         </div>
       </div>
 
+      <div class="field" style="margin-top:4px;">
+        <label for="infographicFormat">Infographic Format</label>
+        <select id="infographicFormat">
+          <option value="FACT">FACT — Lavender / Expert</option>
+          <option value="MYTH">MYTH — Amber / Attention</option>
+          <option value="THIS vs THAT">THIS vs THAT — Blue &amp; Peach / Comparison</option>
+          <option value="IF YOUR BABY">IF YOUR BABY — Sky Blue / Reassuring</option>
+          <option value="DO THIS, NOT THAT">DO THIS, NOT THAT — Mint / Actionable</option>
+        </select>
+      </div>
+
       <div class="btn-row">
         <button class="btn btn-blog" id="btnBlog" onclick="generateBlog()">Generate Blog</button>
         <button class="btn btn-article" id="btnArticle" onclick="generateArticle()">Generate Article</button>
         <button class="btn btn-both" id="btnBoth" onclick="generateBoth()">Generate Both</button>
+        <button class="btn btn-infographic" id="btnInfographic" onclick="generateInfographic()">🖼 Generate
+          Infographic</button>
       </div>
 
       <div class="loading" id="loadingIndicator">
@@ -528,7 +596,8 @@
     <div class="card">
       <div class="output-header">
         <span class="output-label">Shopify Blog</span>
-        <button class="btn btn-copy" id="copyBlogBtn" onclick="copyOutput('blogOutput', 'copyBlogBtn')">Copy Blog</button>
+        <button class="btn btn-copy" id="copyBlogBtn" onclick="copyOutput('blogOutput', 'copyBlogBtn')">Copy
+          Blog</button>
       </div>
 
       <!-- SEO Metadata Panel (populated by script.js after generation) -->
@@ -540,7 +609,7 @@
           <div class="seo-field-row">
             <span class="seo-label">Thumbnail</span>
             <a id="thumbnailLink" href="#" target="_blank"
-               style="font-size:0.72rem;color:#6666aa;text-decoration:underline;">Open full size ↗</a>
+              style="font-size:0.72rem;color:#6666aa;text-decoration:underline;">Open full size ↗</a>
           </div>
           <img id="thumbnailPreview" class="thumbnail-preview" alt="Blog thumbnail" />
         </div>
@@ -552,7 +621,7 @@
             <div style="display:flex;align-items:center;gap:8px;">
               <span class="seo-char-count" id="metaTitleCount">0 / 70</span>
               <button class="btn-copy-seo" id="copyMetaTitle"
-                      onclick="copySeoField('metaTitleValue', 'copyMetaTitle')">Copy</button>
+                onclick="copySeoField('metaTitleValue', 'copyMetaTitle')">Copy</button>
             </div>
           </div>
           <div class="seo-value empty" id="metaTitleValue">—</div>
@@ -565,7 +634,7 @@
             <div style="display:flex;align-items:center;gap:8px;">
               <span class="seo-char-count" id="metaDescCount">0 / 160</span>
               <button class="btn-copy-seo" id="copyMetaDesc"
-                      onclick="copySeoField('metaDescValue', 'copyMetaDesc')">Copy</button>
+                onclick="copySeoField('metaDescValue', 'copyMetaDesc')">Copy</button>
             </div>
           </div>
           <div class="seo-value empty" id="metaDescValue">—</div>
@@ -576,7 +645,7 @@
           <div class="seo-field-row">
             <span class="seo-label">Excerpt</span>
             <button class="btn-copy-seo" id="copyExcerpt"
-                    onclick="copySeoField('excerptValue', 'copyExcerpt')">Copy</button>
+              onclick="copySeoField('excerptValue', 'copyExcerpt')">Copy</button>
           </div>
           <div class="seo-value empty" id="excerptValue">—</div>
         </div>
@@ -593,6 +662,26 @@
           Article</button>
       </div>
       <textarea class="output-box" id="mediumOutput" readonly placeholder="Medium article will appear here…"></textarea>
+    </div>
+
+    <!-- Infographic Output Card -->
+    <div class="card" id="infographicCard">
+      <div class="output-header">
+        <span class="output-label">WhatsApp Infographic</span>
+        <span id="infographicFormatBadge" style="font-size:0.72rem;color:#888;"></span>
+      </div>
+      <div class="infographic-preview-wrap" id="infographicWrap">
+        <img id="infographicImg" class="infographic-preview" alt="Generated infographic" />
+        <div class="infographic-actions">
+          <a id="infographicDownload" href="#" target="_blank" download="nubo-infographic.png"
+            style="font-size:0.8rem;color:#d08ad0;text-decoration:underline;border:1px solid #5a3a66;padding:6px 14px;border-radius:6px;background:#2a1e2e;">
+            ⬇ Open / Download
+          </a>
+        </div>
+      </div>
+      <div id="infographicEmpty" style="color:#444;font-size:0.82rem;text-align:center;padding:40px 20px;">
+        Click "Generate Infographic" to create a WhatsApp-ready image
+      </div>
     </div>
 
     <!-- History Card -->

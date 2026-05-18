@@ -36,7 +36,7 @@ function getInputs() {
 }
 
 function setLoading(active, message = "Generating content, please wait…") {
-  const btns = ["btnBlog", "btnArticle", "btnBoth"];
+  const btns = ["btnBlog", "btnArticle", "btnBoth", "btnInfographic"];
   const indicator = document.getElementById("loadingIndicator");
   document.getElementById("loadingText").textContent = message;
   btns.forEach(id => document.getElementById(id).disabled = active);
@@ -220,10 +220,10 @@ async function loadHistoryItem(id) {
       setOutput("blogOutput", item.blog);
       // Restore SEO fields if they were saved with this history entry
       renderSeoPanel({
-        metaTitle:       item.metaTitle       || "",
+        metaTitle: item.metaTitle || "",
         metaDescription: item.metaDescription || "",
-        excerpt:         item.excerpt         || "",
-        thumbnailUrl:    item.thumbnailUrl    || ""
+        excerpt: item.excerpt || "",
+        thumbnailUrl: item.thumbnailUrl || ""
       });
     }
     if (item.article) setOutput("mediumOutput", item.article);
@@ -248,9 +248,9 @@ function escapeHtml(str) {
 // Clears the SEO panel back to its empty/hidden state
 function clearSeoPanel() {
   document.getElementById("seoPanelBlog").classList.remove("visible");
-  setSeoField("metaTitleValue",  "", "metaTitleCount",  70);
-  setSeoField("metaDescValue",   "", "metaDescCount",  160);
-  setSeoField("excerptValue",    "");
+  setSeoField("metaTitleValue", "", "metaTitleCount", 70);
+  setSeoField("metaDescValue", "", "metaDescCount", 160);
+  setSeoField("excerptValue", "");
   const thumbField = document.getElementById("seoThumbnailField");
   thumbField.style.display = "none";
   const img = document.getElementById("thumbnailPreview");
@@ -267,17 +267,17 @@ function renderSeoPanel(data) {
   if (!hasContent) return;
   document.getElementById("seoPanelBlog").classList.add("visible");
 
-  setSeoField("metaTitleValue", metaTitle,       "metaTitleCount", 70);
-  setSeoField("metaDescValue",  metaDescription, "metaDescCount",  160);
-  setSeoField("excerptValue",   excerpt);
+  setSeoField("metaTitleValue", metaTitle, "metaTitleCount", 70);
+  setSeoField("metaDescValue", metaDescription, "metaDescCount", 160);
+  setSeoField("excerptValue", excerpt);
 
   // Thumbnail
   if (thumbnailUrl) {
     const thumbField = document.getElementById("seoThumbnailField");
     thumbField.style.display = "block";
-    const img  = document.getElementById("thumbnailPreview");
+    const img = document.getElementById("thumbnailPreview");
     const link = document.getElementById("thumbnailLink");
-    img.src  = thumbnailUrl;
+    img.src = thumbnailUrl;
     link.href = thumbnailUrl;
     img.classList.add("visible");
   }
@@ -317,6 +317,75 @@ async function copySeoField(valueId, btnId) {
   } catch {
     alert("Could not copy — please select and copy manually.");
   }
+}
+
+// ─────────────────────────────────────────────
+// Generate Infographic → POST /generate-infographic
+// ─────────────────────────────────────────────
+async function generateInfographic() {
+  const topic = document.getElementById("topic").value.trim();
+  const format = document.getElementById("infographicFormat").value;
+
+  if (!topic) { alert("Please enter a topic."); return; }
+
+  setLoading(true, "Generating infographic image (this takes ~20s)…");
+  clearInfographicPanel();
+
+  try {
+    const data = await safeFetch(`${API}/generate-infographic`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic, format })
+    });
+
+    if (data.image_url) {
+      renderInfographic(data.image_url, format);
+    } else {
+      showInfographicError("No image URL returned.");
+    }
+  } catch (err) {
+    console.error(err);
+    showInfographicError("Error: " + err.message);
+  } finally {
+    setLoading(false);
+  }
+}
+
+function renderInfographic(imageUrl, format) {
+  const wrap = document.getElementById("infographicWrap");
+  const img = document.getElementById("infographicImg");
+  const dl = document.getElementById("infographicDownload");
+  const empty = document.getElementById("infographicEmpty");
+  const badge = document.getElementById("infographicFormatBadge");
+
+  img.src = imageUrl;
+  dl.href = imageUrl;
+  badge.textContent = format;
+  wrap.classList.add("visible");
+  empty.style.display = "none";
+
+  // Scroll infographic into view
+  document.getElementById("infographicCard").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function clearInfographicPanel() {
+  const wrap = document.getElementById("infographicWrap");
+  const img = document.getElementById("infographicImg");
+  const empty = document.getElementById("infographicEmpty");
+  const badge = document.getElementById("infographicFormatBadge");
+
+  wrap.classList.remove("visible");
+  img.src = "";
+  badge.textContent = "";
+  empty.style.display = "block";
+  empty.textContent = "Generating…";
+}
+
+function showInfographicError(msg) {
+  const empty = document.getElementById("infographicEmpty");
+  empty.style.display = "block";
+  empty.textContent = msg;
+  empty.style.color = "#cc6655";
 }
 
 // ─────────────────────────────────────────────

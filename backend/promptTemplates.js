@@ -496,60 +496,60 @@ OUTPUT: Title + full article. Plain text, no HTML. No explanation before or afte
 // Used to prevent hallucinated toy shapes/colors.
 // ─────────────────────────────────────────────
 const PRODUCT_VISUALS = {
-  teethers: {
-    products: [
-      {
-        name: "Ele Ring Teether",
-        description:
-          "a ring-shaped silicone teether with a soft elephant head attached — pastel blue and beige colors, gentle rounded elephant ears, smooth circular ring body, about palm-sized"
-      },
-      {
-        name: "Kiko No-Drop Teether",
-        description:
-          "a small green silicone teether shaped like a gentle cartoon character with a wide flat grip — bright leaf-green color, small enough to fit in a newborn's fist, smooth rounded edges, no sharp angles"
-      }
-    ],
-    scene:
-      "An Indian baby (3–8 months old) lying on a soft cotton mat on the floor, chewing or mouthing the teether with both hands wrapped around it. The baby is wearing a simple cotton onesie. One parent (Indian mother or father) is sitting nearby cross-legged, gently watching. Late morning, natural window light. A plant or simple home corner visible softly out of focus in the background."
-  },
+   teethers: {
+      products: [
+         {
+            name: "Ele Ring Teether",
+            description:
+               "a ring-shaped silicone teether with a soft elephant head attached — pastel blue and beige colors, gentle rounded elephant ears, smooth circular ring body, about palm-sized"
+         },
+         {
+            name: "Kiko No-Drop Teether",
+            description:
+               "a small green silicone teether shaped like a gentle cartoon character with a wide flat grip — bright leaf-green color, small enough to fit in a newborn's fist, smooth rounded edges, no sharp angles"
+         }
+      ],
+      scene:
+         "An Indian baby (3–8 months old) lying on a soft cotton mat on the floor, chewing or mouthing the teether with both hands wrapped around it. The baby is wearing a simple cotton onesie. One parent (Indian mother or father) is sitting nearby cross-legged, gently watching. Late morning, natural window light. A plant or simple home corner visible softly out of focus in the background."
+   },
 
-  books_kit: {
-    products: [
-      {
-        name: "High Contrast Cloth Book",
-        description:
-          "a small square soft cloth book with bold black and white high-contrast patterns — simple geometric shapes and animal outlines printed on white fabric pages, about the size of a hand"
-      },
-      {
-        name: "Newborn Gift Kit",
-        description:
-          "a set of soft black and white Montessori developmental toys — includes a small cloth book and a couple of high contrast sensory cards, laid out gently on a mat"
-      }
-    ],
-    scene:
-      "An Indian newborn (0–4 months) during tummy time on a soft play mat. The cloth book is open and propped in front of the baby at eye level. An Indian parent (mother or father) is lying on their stomach at the same level, pointing to the high-contrast pages with one finger, smiling softly. The setting is a home living room floor — light wooden floor or a simple carpet. Natural daylight from a nearby window. The scene feels unhurried and tender."
-  },
+   books_kit: {
+      products: [
+         {
+            name: "High Contrast Cloth Book",
+            description:
+               "a small square soft cloth book with bold black and white high-contrast patterns — simple geometric shapes and animal outlines printed on white fabric pages, about the size of a hand"
+         },
+         {
+            name: "Newborn Gift Kit",
+            description:
+               "a set of soft black and white Montessori developmental toys — includes a small cloth book and a couple of high contrast sensory cards, laid out gently on a mat"
+         }
+      ],
+      scene:
+         "An Indian newborn (0–4 months) during tummy time on a soft play mat. The cloth book is open and propped in front of the baby at eye level. An Indian parent (mother or father) is lying on their stomach at the same level, pointing to the high-contrast pages with one finger, smiling softly. The setting is a home living room floor — light wooden floor or a simple carpet. Natural daylight from a nearby window. The scene feels unhurried and tender."
+   },
 
-  all_products: {
-    products: [
-      {
-        name: "Ele Ring Teether and Cloth Book",
-        description:
-          "a pastel blue ring-shaped elephant silicone teether placed next to a small square black-and-white cloth book with geometric patterns — both visible on a play mat"
-      }
-    ],
-    scene:
-      "An Indian baby (4–9 months) sitting upright with support on a soft cotton play mat, exploring a teether in one hand and reaching toward a cloth book spread open nearby. An Indian parent is seated close behind, gently supporting the baby's back while watching with quiet delight. Home environment — a simple living room with warm neutral walls, afternoon light coming through sheer curtains. The atmosphere is calm, everyday, and real."
-  }
+   all_products: {
+      products: [
+         {
+            name: "Ele Ring Teether and Cloth Book",
+            description:
+               "a pastel blue ring-shaped elephant silicone teether placed next to a small square black-and-white cloth book with geometric patterns — both visible on a play mat"
+         }
+      ],
+      scene:
+         "An Indian baby (4–9 months) sitting upright with support on a soft cotton play mat, exploring a teether in one hand and reaching toward a cloth book spread open nearby. An Indian parent is seated close behind, gently supporting the baby's back while watching with quiet delight. Home environment — a simple living room with warm neutral walls, afternoon light coming through sheer curtains. The atmosphere is calm, everyday, and real."
+   }
 };
 
 // Normalize incoming category keys to match PRODUCT_VISUALS keys
 function resolveCategory(category) {
-  if (!category) return "all_products";
-  const c = category.toLowerCase();
-  if (c.includes("teether")) return "teethers";
-  if (c.includes("book") || c.includes("kit")) return "books_kit";
-  return "all_products";
+   if (!category) return "all_products";
+   const c = category.toLowerCase();
+   if (c.includes("teether")) return "teethers";
+   if (c.includes("book") || c.includes("kit")) return "books_kit";
+   return "all_products";
 }
 
 /**
@@ -561,48 +561,48 @@ function resolveCategory(category) {
  * @returns {string}          - Final prompt string ready to pass to OpenAI images.generate()
  */
 export function buildThumbnailPrompt(topic, category, keywords = []) {
-  const resolved = resolveCategory(category);
-  const visual = PRODUCT_VISUALS[resolved];
+   const resolved = resolveCategory(category);
+   const visual = PRODUCT_VISUALS[resolved];
 
-  // Pick the primary product for this category
-  const primaryProduct = visual.products[0];
+   // Pick the primary product for this category
+   const primaryProduct = visual.products[0];
 
-  // Pull 1–2 relevant keywords as mood hints (avoid stuffing)
-  const moodHint =
-    Array.isArray(keywords) && keywords.length
-      ? keywords.slice(0, 2).join(" and ")
-      : "";
+   // Pull 1–2 relevant keywords as mood hints (avoid stuffing)
+   const moodHint =
+      Array.isArray(keywords) && keywords.length
+         ? keywords.slice(0, 2).join(" and ")
+         : "";
 
-  return [
-    // Scene & subject
-    visual.scene,
+   return [
+      // Scene & subject
+      visual.scene,
 
-    // Product grounding — the most critical realism constraint
-    `The product visible in the scene is the ${primaryProduct.name}: ${primaryProduct.description}.`,
-    "The product MUST match this description exactly — do NOT invent a different toy shape, color, or design.",
+      // Product grounding — the most critical realism constraint
+      `The product visible in the scene is the ${primaryProduct.name}: ${primaryProduct.description}.`,
+      "The product MUST match this description exactly — do NOT invent a different toy shape, color, or design.",
 
-    // Mood / topic tie-in
-    moodHint
-      ? `The scene visually conveys the feeling of: ${moodHint}.`
-      : "",
+      // Mood / topic tie-in
+      moodHint
+         ? `The scene visually conveys the feeling of: ${moodHint}.`
+         : "",
 
-    // Photography realism rules
-    "Photography style: candid lifestyle documentary. Shot on a mirrorless camera with a 50mm or 35mm lens.",
-    "Exposure: slightly soft, naturally lit. Color grading: warm but NOT filtered — realistic skin tones for South Asian complexions.",
-    "Depth of field: background gently out of focus but recognizable as a real home. No studio backdrop. No fake bokeh.",
+      // Photography realism rules
+      "Photography style: candid lifestyle documentary. Shot on a mirrorless camera with a 50mm or 35mm lens.",
+      "Exposure: slightly soft, naturally lit. Color grading: warm but NOT filtered — realistic skin tones for South Asian complexions.",
+      "Depth of field: background gently out of focus but recognizable as a real home. No studio backdrop. No fake bokeh.",
 
-    // Strict anti-cinematic / anti-AI-look constraints
-    "NO dramatic cinematic lighting. NO rim lights. NO artificial fill lights. NO lens flares.",
-    "NO stock-photo perfection. Slight shadow under the baby, minor fabric wrinkle, natural hair — all fine and preferred.",
-    "NO text, watermarks, logos, or overlays anywhere in the image.",
-    "NO toys, objects, or colors that were not described above — strict product accuracy required.",
+      // Strict anti-cinematic / anti-AI-look constraints
+      "NO dramatic cinematic lighting. NO rim lights. NO artificial fill lights. NO lens flares.",
+      "NO stock-photo perfection. Slight shadow under the baby, minor fabric wrinkle, natural hair — all fine and preferred.",
+      "NO text, watermarks, logos, or overlays anywhere in the image.",
+      "NO toys, objects, or colors that were not described above — strict product accuracy required.",
 
-    // Output spec
-    "Aspect ratio: 16:9 landscape. Composition: close-to-mid shot. Focus on baby and product interaction.",
-    "The image must look like a real photograph from a real Indian home — warm, loving, everyday."
-  ]
-    .filter(Boolean)
-    .join(" ");
+      // Output spec
+      "Aspect ratio: 16:9 landscape. Composition: close-to-mid shot. Focus on baby and product interaction.",
+      "The image must look like a real photograph from a real Indian home — warm, loving, everyday."
+   ]
+      .filter(Boolean)
+      .join(" ");
 }
 
 // ─────────────────────────────────────────────
@@ -654,3 +654,159 @@ STYLE RULES:
 
 OUTPUT: Title + full article. Plain text, no HTML. No explanation before or after.
 `;
+
+// ─────────────────────────────────────────────
+// INFOGRAPHIC PROMPT BUILDER
+// Generates a structured DALL-E prompt for WhatsApp-ready infographic images.
+// Format-specific color themes, layouts, and content structures.
+// ─────────────────────────────────────────────
+
+const INFOGRAPHIC_FORMATS = {
+   FACT: {
+      colorTheme: "soft lavender (#c9b8f0) background with white card, deep purple (#4a3080) text accents, calm expert tone",
+      headlinePrefix: "Did You Know?",
+      badgeLabel: "FACT",
+      badgeColor: "lavender (#b09ee0) badge with white text",
+      illustrationStyle: "a calm, knowledgeable Indian baby in a relaxed pose, soft lavender lighting"
+   },
+   MYTH: {
+      colorTheme: "soft amber (#fff0b3) background with white card, warm orange (#c87020) text accents, attention-grabbing tone",
+      headlinePrefix: "Myth Busted:",
+      badgeLabel: "MYTH",
+      badgeColor: "amber (#f0c040) badge with dark text",
+      illustrationStyle: "a curious Indian baby with a slightly surprised expression, warm golden lighting"
+   },
+   "THIS vs THAT": {
+      colorTheme: "split dual-color layout — left half soft blue (#b8d8f0), right half soft peach (#f0d8c0), with a clean white divider line in the center",
+      headlinePrefix: "THIS vs THAT:",
+      badgeLabel: "COMPARISON",
+      badgeColor: "split blue-peach badge with white text",
+      illustrationStyle: "two side-by-side cute Indian baby illustrations — one on each color panel — showing contrasting actions"
+   },
+   "IF YOUR BABY": {
+      colorTheme: "soft sky blue (#d0eaf8) background with white card, calm teal (#2a7a9a) text accents, reassuring supportive tone",
+      headlinePrefix: "If Your Baby…",
+      badgeLabel: "BABY GUIDE",
+      badgeColor: "soft blue (#7abcd0) badge with white text",
+      illustrationStyle: "a sweet, calm Indian baby doing an everyday activity, soft blue ambient lighting, very reassuring"
+   },
+   "DO THIS, NOT THAT": {
+      colorTheme: "mint green (#c8f0d8) background with white card, forest green (#1a6a3a) text accents, actionable instructive tone",
+      headlinePrefix: "Do This, Not That:",
+      badgeLabel: "ACTION GUIDE",
+      badgeColor: "mint green (#60b880) badge with white text",
+      illustrationStyle: "an active Indian baby performing a positive action, bright mint-green lighting, energetic yet gentle"
+   }
+};
+
+const CREDIBLE_SOURCES = ["AAP (American Academy of Pediatrics)", "WHO", "CDC", "Mayo Clinic", "National Sleep Foundation"];
+
+/**
+ * Generates a structured infographic content plan and DALL-E image prompt.
+ *
+ * @param {string} topic  - The infographic topic
+ * @param {string} format - One of: FACT | MYTH | THIS vs THAT | IF YOUR BABY | DO THIS, NOT THAT
+ * @returns {string}      - Final DALL-E prompt string
+ */
+export function buildInfographicPrompt(topic, format) {
+   const fmt = INFOGRAPHIC_FORMATS[format] || INFOGRAPHIC_FORMATS["FACT"];
+   const source = CREDIBLE_SOURCES[Math.floor(Math.random() * CREDIBLE_SOURCES.length)];
+
+   // ── Derive content based on format ──────────────────────────────────────────
+   let headline, subtext, points;
+
+   if (format === "THIS vs THAT") {
+      headline = `${fmt.headlinePrefix} ${topic}`;
+      subtext = "Know the difference for your baby's best development";
+      points = [
+         { title: "✓ THIS", detail: "Evidence-backed approach that supports healthy growth" },
+         { title: "✗ THAT", detail: "Common habit that may slow down development" },
+         { title: "✓ THIS", detail: "Simple, safe, and recommended by pediatricians" },
+         { title: "✗ THAT", detail: "Outdated practice — better options exist today" }
+      ];
+   } else if (format === "MYTH") {
+      headline = `${fmt.headlinePrefix} ${topic}`;
+      subtext = "What parents are often told — and what science actually says";
+      points = [
+         { title: "The Myth", detail: "A widely believed but incorrect idea about this topic" },
+         { title: "The Truth", detail: "What pediatric research actually shows" },
+         { title: "Why It Matters", detail: "How this affects your baby's daily routine" },
+         { title: "What To Do", detail: "Simple, evidence-based action you can take today" }
+      ];
+   } else if (format === "IF YOUR BABY") {
+      headline = `${fmt.headlinePrefix} ${topic}`;
+      subtext = "Here's what it means and what you can do";
+      points = [
+         { title: "What It Means", detail: "This is a normal developmental phase — don't worry" },
+         { title: "Why It Happens", detail: "Brief science-backed explanation for this behavior" },
+         { title: "What Helps", detail: "A gentle, proven approach that supports your baby" },
+         { title: "When To Check", detail: "Signs that warrant a call to your pediatrician" }
+      ];
+   } else if (format === "DO THIS, NOT THAT") {
+      headline = `${fmt.headlinePrefix} ${topic}`;
+      subtext = "Small changes, big impact on your baby's growth";
+      points = [
+         { title: "✓ Do This", detail: "The best practice recommended by experts" },
+         { title: "✗ Not That", detail: "The common mistake most parents unknowingly make" },
+         { title: "✓ Do This", detail: "A simple daily habit that makes a real difference" },
+         { title: "✗ Not That", detail: "What to avoid for your baby's safety and development" }
+      ];
+   } else {
+      // Default: FACT
+      headline = `${fmt.headlinePrefix} ${topic}`;
+      subtext = "A quick, evidence-backed fact every parent should know";
+      points = [
+         { title: "Key Finding", detail: "The core research-backed insight about this topic" },
+         { title: "Why It Matters", detail: "How this directly impacts your baby's development" },
+         { title: "At Home", detail: "One simple thing you can do today based on this fact" },
+         { title: "Expert Tip", detail: "A nuanced detail most parents overlook" }
+      ];
+   }
+
+   // ── Build the DALL-E image generation prompt ─────────────────────────────────
+   const pointsText = points
+      .map((p, i) => `Point ${i + 1} — Title: "${p.title}" | Detail: "${p.detail}"`)
+      .join("; ");
+
+   return [
+      // Core format
+      "Create a square (1:1) WhatsApp-ready infographic image. Clean, minimal, modern design.",
+      "Layout: left 55% is text content area on a white card, right 45% is illustration area.",
+
+      // Color theme
+      `Color theme: ${fmt.colorTheme}.`,
+
+      // Badge / format label
+      `Top-left corner: a small rounded ${fmt.badgeColor} pill label that reads "${fmt.badgeLabel}".`,
+
+      // Headline
+      `Main headline text (large, bold, max 8 words): "${headline}". Place at the top of the text area.`,
+
+      // Subtext
+      `Subtext below headline (small, muted, 1 line): "${subtext}".`,
+
+      // Action points
+      `Below subtext, display exactly 4 action points in a vertical list with rounded icon bullets. ${pointsText}.`,
+      "Each point: small bold title on one line, one short detail sentence below it. Clean spacing.",
+
+      // Source
+      `At the very bottom of the text area, in tiny muted text: "Source: ${source}".`,
+
+      // Illustration
+      `Right side illustration (45% of image): ${fmt.illustrationStyle}.`,
+      "Illustration style: cute, minimal, flat-ish illustration — NOT photorealistic. Soft, warm, friendly. Indian baby.",
+      "Baby looks South Asian / Indian — warm skin tone, dark hair, expressive eyes.",
+
+      // Nubo logo
+      "Bottom-right corner: small, clean text logo that reads 'nubo' in lowercase rounded sans-serif font, in a muted color matching the theme. Keep it subtle and professional.",
+
+      // Global design rules
+      "Typography: clean sans-serif throughout. Adequate white space. No clutter.",
+      "No long paragraphs anywhere. All text is short and scannable.",
+      "Overall feel: premium, parent-friendly, trustworthy. Like a professional health brand's social post.",
+      "DO NOT add any borders, frames, or shadows that look cheap. Keep it elegant.",
+      "Image must look complete, polished, and ready to share on WhatsApp."
+   ]
+      .filter(Boolean)
+      .join(" ");
+}

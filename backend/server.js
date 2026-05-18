@@ -14,7 +14,8 @@ import {
   mediumStoryPrompt,
   mediumSciencePrompt,
   mediumSoftSalesPrompt,
-  buildThumbnailPrompt
+  buildThumbnailPrompt,
+  buildInfographicPrompt
 } from "./promptTemplates.js";
 
 dotenv.config();
@@ -318,6 +319,54 @@ app.post("/generate", async (req, res) => {
   } catch (error) {
     console.error("ERROR /generate:", error);
     res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+// ===== POST /generate-infographic =====
+// Generates a WhatsApp-ready infographic image via OpenAI DALL-E.
+// Response shape: { image_url: "..." }
+app.post("/generate-infographic", async (req, res) => {
+  try {
+    const { topic, format } = req.body;
+
+    if (!topic) {
+      return res.status(400).json({ error: "topic is required" });
+    }
+
+    const validFormats = ["FACT", "MYTH", "THIS vs THAT", "IF YOUR BABY", "DO THIS, NOT THAT"];
+    const resolvedFormat = validFormats.includes(format) ? format : "FACT";
+
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({ error: "OPENAI_API_KEY not configured" });
+    }
+
+    const imagePrompt = buildInfographicPrompt(topic, resolvedFormat);
+
+    console.log(
+      "[Infographic] Format:", resolvedFormat,
+      "| Topic:", topic,
+      "| Prompt length:", imagePrompt.length, "chars"
+    );
+
+    const response = await openai.images.generate({
+      model: "dall-e-3",
+      prompt: imagePrompt,
+      n: 1,
+      size: "1024x1024",   // 1:1 square — WhatsApp infographic format
+      quality: "standard"
+    });
+
+    const image_url = response.data[0]?.url ?? null;
+
+    if (!image_url) {
+      return res.status(500).json({ error: "Image generation returned no URL" });
+    }
+
+    console.log("[Infographic] Generated successfully for:", topic);
+    res.json({ image_url });
+  } catch (error) {
+    console.error("ERROR /generate-infographic:", error);
+    res.status(500).json({ error: "Something went wrong generating the infographic" });
   }
 });
 
