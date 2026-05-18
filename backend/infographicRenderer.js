@@ -4,7 +4,8 @@
 // Produces clean, readable text — unlike AI image generators.
 // ============================================================
 
-import puppeteer from 'puppeteer';
+import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer-core';
 
 // ── Per-format visual themes ───────────────────────────────
 const THEMES = {
@@ -163,16 +164,9 @@ export async function renderInfographic(content, format, illustrationDataUrl = n
   const html = buildHtml(content, format, illustrationDataUrl);
 
   const browser = await puppeteer.launch({
-    headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--disable-gpu',
-      '--no-first-run',
-      '--no-zygote',
-    ],
+    args: chromium.args,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
   });
 
   const page = await browser.newPage();
