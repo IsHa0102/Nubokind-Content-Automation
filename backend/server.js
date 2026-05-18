@@ -157,13 +157,15 @@ async function generateThumbnail(topic, category, keywords) {
 
   try {
     const response = await openai.images.generate({
-      model: "dall-e-2",
+      model: "gpt-image-1",
       prompt: imagePrompt,
       n: 1,
-      size: "1024x1024"
+      size: "1024x1024",
+      quality: "medium"
     });
 
-    return response.data[0]?.url ?? null;
+    const b64 = response.data[0]?.b64_json;
+    return b64 ? `data:image/png;base64,${b64}` : null;
   } catch (err) {
     console.error("Thumbnail generation failed (non-fatal):", err.message);
     return null;
@@ -370,13 +372,15 @@ app.post("/generate-infographic", async (req, res) => {
     );
 
     const response = await openai.images.generate({
-      model: "dall-e-2",
+      model: "gpt-image-1",
       prompt: imagePrompt,
       n: 1,
-      size: "1024x1024"    // 1:1 square — WhatsApp infographic format
+      size: "1024x1024",   // 1:1 square — WhatsApp infographic format
+      quality: "medium"
     });
 
-    const image_url = response.data[0]?.url ?? null;
+    const b64 = response.data[0]?.b64_json;
+    const image_url = b64 ? `data:image/png;base64,${b64}` : null;
 
     if (!image_url) {
       return res.status(500).json({ error: "Image generation returned no URL" });
