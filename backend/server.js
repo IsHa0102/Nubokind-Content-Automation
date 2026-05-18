@@ -357,7 +357,11 @@ app.post("/generate-infographic", async (req, res) => {
     }
 
     // Step 2: Build DALL-E prompt with real content and render the image
-    const imagePrompt = buildInfographicPrompt(topic, resolvedFormat, infographicContent);
+    // DALL-E 3 hard limit is 4000 characters — truncate if over
+    let imagePrompt = buildInfographicPrompt(topic, resolvedFormat, infographicContent);
+    if (imagePrompt.length > 3900) {
+      imagePrompt = imagePrompt.slice(0, 3900);
+    }
 
     console.log(
       "[Infographic] Format:", resolvedFormat,
@@ -382,8 +386,9 @@ app.post("/generate-infographic", async (req, res) => {
     console.log("[Infographic] Generated successfully for:", topic);
     res.json({ image_url });
   } catch (error) {
-    console.error("ERROR /generate-infographic:", error);
-    res.status(500).json({ error: "Something went wrong generating the infographic" });
+    const detail = error?.response?.data?.error?.message || error?.message || String(error);
+    console.error("ERROR /generate-infographic:", detail);
+    res.status(500).json({ error: "Something went wrong generating the infographic", detail });
   }
 });
 
