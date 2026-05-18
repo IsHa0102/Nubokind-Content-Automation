@@ -14,7 +14,7 @@ async function safeFetch(url, options) {
   const text = await res.text();
   try {
     const data = JSON.parse(text);
-    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    if (!res.ok) throw new Error(data.detail || data.error || `HTTP ${res.status}`);
     return data;
   } catch (parseErr) {
     // Server returned non-JSON (HTML error page, etc.)

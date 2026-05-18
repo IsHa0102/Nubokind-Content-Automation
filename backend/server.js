@@ -347,10 +347,11 @@ app.post("/generate-infographic", async (req, res) => {
       const contentResponse = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: buildInfographicContentPrompt(topic, resolvedFormat) }],
-        temperature: 0.7,
-        response_format: { type: "json_object" }
+        temperature: 0.7
       });
-      infographicContent = JSON.parse(contentResponse.choices[0].message.content);
+      const raw = contentResponse.choices[0].message.content;
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      infographicContent = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
       console.log("[Infographic] Content generated — source:", infographicContent.sources);
     } catch (e) {
       console.warn("[Infographic] Content generation failed, using fallbacks:", e.message);
