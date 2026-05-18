@@ -699,69 +699,75 @@ const INFOGRAPHIC_FORMATS = {
    }
 };
 
-const CREDIBLE_SOURCES = ["AAP (American Academy of Pediatrics)", "WHO", "CDC", "Mayo Clinic", "National Sleep Foundation"];
+const FORMAT_GUIDES = {
+   "FACT": "Present a surprising or little-known pediatric fact. Points: Key Finding, Why It Matters, At Home tip, Expert Tip.",
+   "MYTH": "Bust a common parenting myth with science. Points: The Myth, The Truth, Why It Matters, What To Do.",
+   "THIS vs THAT": "Compare two approaches. Use 2 THIS points (recommended) and 2 THAT points (what to avoid).",
+   "IF YOUR BABY": "Guide parents on a specific baby behavior. Points: What It Means, Why It Happens, What Helps, When To Check.",
+   "DO THIS, NOT THAT": "Action guide with best practices. Use 2 Do This points and 2 Not That points."
+};
 
 /**
- * Generates a structured infographic content plan and DALL-E image prompt.
+ * Returns a GPT prompt that generates factually accurate infographic content + correct sources.
+ * The response should be parsed as JSON before passing to buildInfographicPrompt.
  *
  * @param {string} topic  - The infographic topic
- * @param {string} format - One of: FACT | MYTH | THIS vs THAT | IF YOUR BABY | DO THIS, NOT THAT
- * @returns {string}      - Final DALL-E prompt string
+ * @param {string} format - One of the 5 infographic formats
+ * @returns {string}      - GPT chat prompt string
  */
-export function buildInfographicPrompt(topic, format) {
+export function buildInfographicContentPrompt(topic, format) {
+   return `You are a pediatric content expert creating a WhatsApp infographic for Indian parents.
+
+Format: ${format}
+Topic: ${topic}
+Format guide: ${FORMAT_GUIDES[format] || FORMAT_GUIDES["FACT"]}
+
+Generate factually accurate, concise content. Return ONLY valid JSON — no markdown, no explanation.
+
+{
+  "headline": "<max 8 words, punchy and specific to the topic>",
+  "subtext": "<1 short tagline, 6-10 words>",
+  "points": [
+    { "title": "<bold label, 2-4 words>", "detail": "<1 specific factual sentence>" },
+    { "title": "<bold label, 2-4 words>", "detail": "<1 specific factual sentence>" },
+    { "title": "<bold label, 2-4 words>", "detail": "<1 specific factual sentence>" },
+    { "title": "<bold label, 2-4 words>", "detail": "<1 specific factual sentence>" }
+  ],
+  "sources": "<citation string as it appears in the infographic — e.g. 'AAP (American Academy of Pediatrics)' or 'WHO | IAP | CDC'. Only cite organizations that genuinely publish guidance on this specific topic. Never fabricate a source.>"
+}
+
+Source selection rules:
+- Indian traditional practices (kajal, ghutti, mustard oil, oil massage, herbal remedies) → always include IAP (Indian Academy of Pediatrics)
+- Breastfeeding, nutrition, complementary feeding, growth → WHO, IAP
+- Sleep, nap schedules, sleep training → AAP (American Academy of Pediatrics)
+- Child development, milestones, vaccines, attachment → AAP
+- Safety (SIDS, car seat, choking hazards) → CDC or AAP
+- Symptoms, rash, fever, allergies, reflux → Mayo Clinic or AAP
+- Food comparisons, dietary guidelines → WHO, Harvard School of Public Health, or AAP
+- When multiple sources genuinely apply, join them with " | "`;
+}
+
+/**
+ * Generates a DALL-E image prompt for a WhatsApp infographic.
+ * Pass pre-generated content from buildInfographicContentPrompt for accurate sources.
+ *
+ * @param {string} topic   - The infographic topic
+ * @param {string} format  - One of: FACT | MYTH | THIS vs THAT | IF YOUR BABY | DO THIS, NOT THAT
+ * @param {object} content - Pre-generated content: { headline, subtext, points, sources }
+ * @returns {string}       - Final DALL-E prompt string
+ */
+export function buildInfographicPrompt(topic, format, content = {}) {
    const fmt = INFOGRAPHIC_FORMATS[format] || INFOGRAPHIC_FORMATS["FACT"];
-   const source = CREDIBLE_SOURCES[Math.floor(Math.random() * CREDIBLE_SOURCES.length)];
 
-   // ── Derive content based on format ──────────────────────────────────────────
-   let headline, subtext, points;
-
-   if (format === "THIS vs THAT") {
-      headline = `${fmt.headlinePrefix} ${topic}`;
-      subtext = "Know the difference for your baby's best development";
-      points = [
-         { title: "✓ THIS", detail: "Evidence-backed approach that supports healthy growth" },
-         { title: "✗ THAT", detail: "Common habit that may slow down development" },
-         { title: "✓ THIS", detail: "Simple, safe, and recommended by pediatricians" },
-         { title: "✗ THAT", detail: "Outdated practice — better options exist today" }
-      ];
-   } else if (format === "MYTH") {
-      headline = `${fmt.headlinePrefix} ${topic}`;
-      subtext = "What parents are often told — and what science actually says";
-      points = [
-         { title: "The Myth", detail: "A widely believed but incorrect idea about this topic" },
-         { title: "The Truth", detail: "What pediatric research actually shows" },
-         { title: "Why It Matters", detail: "How this affects your baby's daily routine" },
-         { title: "What To Do", detail: "Simple, evidence-based action you can take today" }
-      ];
-   } else if (format === "IF YOUR BABY") {
-      headline = `${fmt.headlinePrefix} ${topic}`;
-      subtext = "Here's what it means and what you can do";
-      points = [
-         { title: "What It Means", detail: "This is a normal developmental phase — don't worry" },
-         { title: "Why It Happens", detail: "Brief science-backed explanation for this behavior" },
-         { title: "What Helps", detail: "A gentle, proven approach that supports your baby" },
-         { title: "When To Check", detail: "Signs that warrant a call to your pediatrician" }
-      ];
-   } else if (format === "DO THIS, NOT THAT") {
-      headline = `${fmt.headlinePrefix} ${topic}`;
-      subtext = "Small changes, big impact on your baby's growth";
-      points = [
-         { title: "✓ Do This", detail: "The best practice recommended by experts" },
-         { title: "✗ Not That", detail: "The common mistake most parents unknowingly make" },
-         { title: "✓ Do This", detail: "A simple daily habit that makes a real difference" },
-         { title: "✗ Not That", detail: "What to avoid for your baby's safety and development" }
-      ];
-   } else {
-      // Default: FACT
-      headline = `${fmt.headlinePrefix} ${topic}`;
-      subtext = "A quick, evidence-backed fact every parent should know";
-      points = [
-         { title: "Key Finding", detail: "The core research-backed insight about this topic" },
-         { title: "Why It Matters", detail: "How this directly impacts your baby's development" },
-         { title: "At Home", detail: "One simple thing you can do today based on this fact" },
-         { title: "Expert Tip", detail: "A nuanced detail most parents overlook" }
-      ];
-   }
+   const headline = content.headline || `${fmt.headlinePrefix} ${topic}`;
+   const subtext = content.subtext || "A quick, evidence-backed fact every parent should know";
+   const source = content.sources || "AAP (American Academy of Pediatrics)";
+   const points = content.points || [
+      { title: "Key Finding", detail: "The core research-backed insight about this topic" },
+      { title: "Why It Matters", detail: "How this directly impacts your baby's development" },
+      { title: "At Home", detail: "One simple thing you can do today based on this fact" },
+      { title: "Expert Tip", detail: "A nuanced detail most parents overlook" }
+   ];
 
    // ── Build the DALL-E image generation prompt ─────────────────────────────────
    const pointsText = points
