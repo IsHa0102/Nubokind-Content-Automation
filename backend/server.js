@@ -157,11 +157,10 @@ async function generateThumbnail(topic, category, keywords) {
 
   try {
     const response = await openai.images.generate({
-      model: "dall-e-3",
+      model: "dall-e-2",
       prompt: imagePrompt,
       n: 1,
-      size: "1792x1024",   // 16:9 landscape — ideal for blog thumbnails
-      quality: "standard"
+      size: "1024x1024"
     });
 
     return response.data[0]?.url ?? null;
@@ -371,11 +370,10 @@ app.post("/generate-infographic", async (req, res) => {
     );
 
     const response = await openai.images.generate({
-      model: "dall-e-3",
+      model: "dall-e-2",
       prompt: imagePrompt,
       n: 1,
-      size: "1024x1024",   // 1:1 square — WhatsApp infographic format
-      quality: "standard"
+      size: "1024x1024"    // 1:1 square — WhatsApp infographic format
     });
 
     const image_url = response.data[0]?.url ?? null;
