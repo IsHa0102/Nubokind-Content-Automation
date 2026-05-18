@@ -15,9 +15,9 @@ import {
   mediumSciencePrompt,
   mediumSoftSalesPrompt,
   buildThumbnailPrompt,
-  buildInfographicPrompt,
   buildInfographicContentPrompt
 } from "./promptTemplates.js";
+import { renderInfographic } from "./infographicRenderer.js";
 
 dotenv.config();
 
@@ -325,8 +325,10 @@ app.post("/generate", async (req, res) => {
 });
 
 // ===== POST /generate-infographic =====
-// Generates a WhatsApp-ready infographic image via OpenAI DALL-E.
-// Response shape: { image_url: "..." }
+// Three-step pipeline:
+//   1. GPT generates factual content + correct source citation
+//   2. gpt-image-1 generates a baby illustration (no text — just the image)
+//   3. Puppeteer renders HTML/CSS template → crisp, readable PNG
 app.post("/generate-infographic", async (req, res) => {
   try {
     const { topic, format } = req.body;
@@ -342,7 +344,7 @@ app.post("/generate-infographic", async (req, res) => {
       return res.status(500).json({ error: "OPENAI_API_KEY not configured" });
     }
 
-    // Step 1: Generate factually accurate content + correct source via GPT
+    // Step 1: Generate factual content + correct source via GPT
     let infographicContent = {};
     try {
       const contentResponse = await openai.chat.completions.create({
@@ -353,38 +355,41 @@ app.post("/generate-infographic", async (req, res) => {
       const raw = contentResponse.choices[0].message.content;
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
       infographicContent = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
-      console.log("[Infographic] Content generated — source:", infographicContent.sources);
+      console.log("[Infographic] Content ready — source:", infographicContent.sources);
     } catch (e) {
       console.warn("[Infographic] Content generation failed, using fallbacks:", e.message);
     }
 
-    // Step 2: Build DALL-E prompt with real content and render the image
-    // DALL-E 3 hard limit is 4000 characters — truncate if over
-    let imagePrompt = buildInfographicPrompt(topic, resolvedFormat, infographicContent);
-    if (imagePrompt.length > 3900) {
-      imagePrompt = imagePrompt.slice(0, 3900);
+    // Step 2: Generate baby illustration only (no text in this image)
+    const illustrationActions = {
+      'FACT': 'sitting calmly and looking curious',
+      'MYTH': 'looking surprised with wide eyes',
+      'THIS vs THAT': 'exploring two objects with interest',
+      'IF YOUR BABY': 'doing an everyday calm activity',
+      'DO THIS, NOT THAT': 'smiling and reaching forward',
+    };
+    const illustrationAction = illustrationActions[resolvedFormat] || 'sitting and smiling happily';
+    const illustrationPrompt = `Cute flat cartoon illustration of an Indian baby ${illustrationAction}. Warm brown skin, dark hair, big expressive eyes. Simple, minimal, friendly style. Solid pastel background. Absolutely no text, letters, words, or labels anywhere in the image. Baby centered and taking up most of the frame.`;
+
+    let illustrationDataUrl = null;
+    try {
+      const illRes = await openai.images.generate({
+        model: "gpt-image-1",
+        prompt: illustrationPrompt,
+        n: 1,
+        size: "1024x1024",
+        quality: "low"
+      });
+      const b64 = illRes.data[0]?.b64_json;
+      if (b64) illustrationDataUrl = `data:image/png;base64,${b64}`;
+      console.log("[Infographic] Illustration ready");
+    } catch (e) {
+      console.warn("[Infographic] Illustration failed (non-fatal):", e.message);
     }
 
-    console.log(
-      "[Infographic] Format:", resolvedFormat,
-      "| Topic:", topic,
-      "| Prompt length:", imagePrompt.length, "chars"
-    );
-
-    const response = await openai.images.generate({
-      model: "gpt-image-1",
-      prompt: imagePrompt,
-      n: 1,
-      size: "1024x1024",   // 1:1 square — WhatsApp infographic format
-      quality: "medium"
-    });
-
-    const b64 = response.data[0]?.b64_json;
-    const image_url = b64 ? `data:image/png;base64,${b64}` : null;
-
-    if (!image_url) {
-      return res.status(500).json({ error: "Image generation returned no URL" });
-    }
+    // Step 3: Render HTML/CSS template → crisp PNG via Puppeteer
+    const b64 = await renderInfographic(infographicContent, resolvedFormat, illustrationDataUrl);
+    const image_url = `data:image/png;base64,${b64}`;
 
     console.log("[Infographic] Generated successfully for:", topic);
     res.json({ image_url });
