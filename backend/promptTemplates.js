@@ -37,11 +37,12 @@ ${products.map(p => `
 
 PRODUCT CARD HTML TEMPLATE (use for sales blogs — pick only relevant products):
 <div class="product-card">
-  <img src="[EXACT Image URL from above]" alt="[Product Name]" style="width:80px;height:auto;border-radius:4px;float:left;margin-right:14px;margin-bottom:4px;" />
-  <a href="[EXACT URL from above]"><h3>[Product Name]</h3></a>
-  <p class="features">[BIS Certified | key features | Age range]</p>
-  <p class="price">[EXACT Price from above]</p>
-  <div style="clear:both;"></div>
+  <img src="[EXACT Image URL from above]" alt="[Product Name]" />
+  <div class="product-card-info">
+    <a href="[EXACT URL from above]"><h3>[Product Name]</h3></a>
+    <p class="features">[BIS Certified | key features | Age range]</p>
+    <p class="price">[EXACT Price from above]</p>
+  </div>
 </div>
 
 PRODUCT LINKS FOR CTAs (use the exact URLs above in anchor tags wherever natural):
@@ -49,6 +50,7 @@ PRODUCT LINKS FOR CTAs (use the exact URLs above in anchor tags wherever natural
 - Kiko No-Drop Newborn Teether: ${products[1].url}
 - High Contrast Cloth Book Set: ${products[2].url}
 - High Contrast Newborn Essential Kit: ${products[3].url}
+- High Contrast Flashcards & Tummy Time Banner: ${products[4].url}
 - Main Site: https://nubokind.com/
 `;
 
@@ -81,11 +83,15 @@ CSS RULES TO EMBED IN <style> TAG:
 - th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
 - th { background-color: #f4f4f4; font-weight: bold; color: #111; }
 - .image-prompt { background: #f9f9f9; padding: 12px; border-left: 4px solid #888; font-style: italic; margin: 20px 0; font-size: 0.95rem; color: #555; }
-- .product-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; margin: 24px 0; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: hidden; }
+- .product-card { position: relative; display: flex; align-items: center; gap: 16px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; margin: 24px 0; background-color: #fdf6ec; background-image: url('https://res.cloudinary.com/dgqcdiyad/image/upload/v1785340961/pattern01_hdcbeh.png'); background-size: 220px; background-repeat: repeat; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: hidden; }
+- .product-card::before { content: ""; position: absolute; inset: 0; background: rgba(255,255,255,0.82); pointer-events: none; }
+- .product-card > * { position: relative; z-index: 1; }
+- .product-card .product-card-info { flex: 1; min-width: 0; }
 - .product-card h3 { margin: 0 0 8px 0; font-size: 1.2rem; text-decoration: underline; color: #111; }
 - .product-card p.features { color: #666; font-size: 0.9rem; margin: 0 0 12px 0; }
 - .product-card p.price { font-weight: bold; font-size: 1.1rem; margin: 0; color: #111; }
-- .product-card img { width: 80px; height: auto; border-radius: 4px; float: left; margin-right: 14px; margin-bottom: 4px; }
+- .product-card img { width: 84px; height: 84px; object-fit: contain; border-radius: 6px; flex-shrink: 0; background: #fff; }
+- @media (max-width: 480px) { .product-card { flex-direction: column; align-items: center; text-align: center; } .product-card img { width: 110px; height: 110px; } .product-card .product-card-info { width: 100%; } }
 - .review-snippet { border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; margin: 16px 0; background: #f9f9f9; }
 - .review-snippet h4 { margin: 0 0 4px 0; font-size: 1rem; color: #111; }
 - .review-snippet .stars { color: #FFD700; margin-bottom: 8px; letter-spacing: 2px; }
@@ -103,6 +109,11 @@ SKIMMABILITY RULES:
 - Include 1 or 2 tables to help readers skim information effectively
 - FAQ uses question as H3, answer as short paragraph
 
+CRITICAL — NO TITLE IN THE BODY:
+Do NOT include an <h1> or any visible title/heading inside <body>. Shopify renders
+the blog post's title on its own from the page <title>; repeating it as an <h1>
+duplicates it on the page. The <article> must start directly with the meta line below.
+
 HTML STRUCTURE TO FOLLOW:
 <!DOCTYPE html>
 <html lang="en">
@@ -116,7 +127,6 @@ HTML STRUCTURE TO FOLLOW:
 </head>
 <body>
   <article>
-    <h1>[TITLE]</h1>
     <p class="meta">Category | Nubokind Blog | Reading time: ~X min</p>
     <p class="excerpt">[EXCERPT — 2 to 3 lines]</p>
     <!-- Sections -->
@@ -479,131 +489,6 @@ STYLE RULES:
 
 OUTPUT: Title + full article. Plain text, no HTML. No explanation before or after.
 `;
-
-// ─────────────────────────────────────────────
-
-// ============================================================
-// THUMBNAIL IMAGE PROMPT BUILDER
-// ============================================================
-// Generates a highly realistic, candid-style image prompt for
-// OpenAI DALL-E based on topic, category, and keywords.
-// Category drives which Nubokind product appears in the scene.
-// ============================================================
-
-// ─────────────────────────────────────────────
-// PRODUCT VISUAL GROUNDING
-// Exact descriptions derived from product reference images.
-// Used to prevent hallucinated toy shapes/colors.
-// ─────────────────────────────────────────────
-const PRODUCT_VISUALS = {
-   teethers: {
-      products: [
-         {
-            name: "Ele Ring Teether",
-            description:
-               "a ring-shaped silicone teether with a soft elephant head attached — pastel blue and beige colors, gentle rounded elephant ears, smooth circular ring body, about palm-sized"
-         },
-         {
-            name: "Kiko No-Drop Teether",
-            description:
-               "a small green silicone teether shaped like a gentle cartoon character with a wide flat grip — bright leaf-green color, small enough to fit in a newborn's fist, smooth rounded edges, no sharp angles"
-         }
-      ],
-      scene:
-         "An Indian baby (3–8 months old) lying on a soft cotton mat on the floor, chewing or mouthing the teether with both hands wrapped around it. The baby is wearing a simple cotton onesie. One parent (Indian mother or father) is sitting nearby cross-legged, gently watching. Late morning, natural window light. A plant or simple home corner visible softly out of focus in the background."
-   },
-
-   books_kit: {
-      products: [
-         {
-            name: "High Contrast Cloth Book",
-            description:
-               "a small square soft cloth book with bold black and white high-contrast patterns — simple geometric shapes and animal outlines printed on white fabric pages, about the size of a hand"
-         },
-         {
-            name: "Newborn Gift Kit",
-            description:
-               "a set of soft black and white Montessori developmental toys — includes a small cloth book and a couple of high contrast sensory cards, laid out gently on a mat"
-         }
-      ],
-      scene:
-         "An Indian newborn (0–4 months) during tummy time on a soft play mat. The cloth book is open and propped in front of the baby at eye level. An Indian parent (mother or father) is lying on their stomach at the same level, pointing to the high-contrast pages with one finger, smiling softly. The setting is a home living room floor — light wooden floor or a simple carpet. Natural daylight from a nearby window. The scene feels unhurried and tender."
-   },
-
-   all_products: {
-      products: [
-         {
-            name: "Ele Ring Teether and Cloth Book",
-            description:
-               "a pastel blue ring-shaped elephant silicone teether placed next to a small square black-and-white cloth book with geometric patterns — both visible on a play mat"
-         }
-      ],
-      scene:
-         "An Indian baby (4–9 months) sitting upright with support on a soft cotton play mat, exploring a teether in one hand and reaching toward a cloth book spread open nearby. An Indian parent is seated close behind, gently supporting the baby's back while watching with quiet delight. Home environment — a simple living room with warm neutral walls, afternoon light coming through sheer curtains. The atmosphere is calm, everyday, and real."
-   }
-};
-
-// Normalize incoming category keys to match PRODUCT_VISUALS keys
-function resolveCategory(category) {
-   if (!category) return "all_products";
-   const c = category.toLowerCase();
-   if (c.includes("teether")) return "teethers";
-   if (c.includes("book") || c.includes("kit")) return "books_kit";
-   return "all_products";
-}
-
-/**
- * Builds a final DALL-E image prompt string for a Nubokind Shopify blog thumbnail.
- *
- * @param {string} topic      - Blog topic (e.g. "when do babies start teething")
- * @param {string} category   - Category key from keywordMap (teethers / books_kit / all_products)
- * @param {string[]} keywords - Keyword array (used for scene mood hints)
- * @returns {string}          - Final prompt string ready to pass to OpenAI images.generate()
- */
-export function buildThumbnailPrompt(topic, category, keywords = []) {
-   const resolved = resolveCategory(category);
-   const visual = PRODUCT_VISUALS[resolved];
-
-   // Pick the primary product for this category
-   const primaryProduct = visual.products[0];
-
-   // Pull 1–2 relevant keywords as mood hints (avoid stuffing)
-   const moodHint =
-      Array.isArray(keywords) && keywords.length
-         ? keywords.slice(0, 2).join(" and ")
-         : "";
-
-   return [
-      // Scene & subject
-      visual.scene,
-
-      // Product grounding — the most critical realism constraint
-      `The product visible in the scene is the ${primaryProduct.name}: ${primaryProduct.description}.`,
-      "The product MUST match this description exactly — do NOT invent a different toy shape, color, or design.",
-
-      // Mood / topic tie-in
-      moodHint
-         ? `The scene visually conveys the feeling of: ${moodHint}.`
-         : "",
-
-      // Photography realism rules
-      "Photography style: candid lifestyle documentary. Shot on a mirrorless camera with a 50mm or 35mm lens.",
-      "Exposure: slightly soft, naturally lit. Color grading: warm but NOT filtered — realistic skin tones for South Asian complexions.",
-      "Depth of field: background gently out of focus but recognizable as a real home. No studio backdrop. No fake bokeh.",
-
-      // Strict anti-cinematic / anti-AI-look constraints
-      "NO dramatic cinematic lighting. NO rim lights. NO artificial fill lights. NO lens flares.",
-      "NO stock-photo perfection. Slight shadow under the baby, minor fabric wrinkle, natural hair — all fine and preferred.",
-      "NO text, watermarks, logos, or overlays anywhere in the image.",
-      "NO toys, objects, or colors that were not described above — strict product accuracy required.",
-
-      // Output spec
-      "Aspect ratio: 16:9 landscape. Composition: close-to-mid shot. Focus on baby and product interaction.",
-      "The image must look like a real photograph from a real Indian home — warm, loving, everyday."
-   ]
-      .filter(Boolean)
-      .join(" ");
-}
 
 // ─────────────────────────────────────────────
 

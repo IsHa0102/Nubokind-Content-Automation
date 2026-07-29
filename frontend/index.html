@@ -446,19 +446,6 @@
       font-style: italic;
     }
 
-    .thumbnail-preview {
-      display: none;
-      width: 100%;
-      max-height: 220px;
-      object-fit: cover;
-      border-radius: 6px;
-      margin-top: 8px;
-    }
-
-    .thumbnail-preview.visible {
-      display: block;
-    }
-
     .btn-copy-seo {
       background: transparent;
       color: #666;
@@ -547,6 +534,11 @@
             <option value="all_teethers">All Teethers</option>
             <option value="books_kit">Books / Kit</option>
             <option value="all_products">All Products</option>
+            <option value="pregnancy">Pregnancy</option>
+            <option value="breastfeeding">Breastfeeding</option>
+            <option value="feeding">Feeding</option>
+            <option value="milestones">Milestones</option>
+            <option value="vaccination">Vaccination</option>
           </select>
         </div>
         <div class="field">
@@ -603,16 +595,6 @@
       <!-- SEO Metadata Panel (populated by script.js after generation) -->
       <div class="seo-panel" id="seoPanelBlog">
         <div class="seo-panel-header">SEO &amp; AI Metadata</div>
-
-        <!-- Thumbnail -->
-        <div class="seo-field" id="seoThumbnailField" style="display:none">
-          <div class="seo-field-row">
-            <span class="seo-label">Thumbnail</span>
-            <a id="thumbnailLink" href="#" target="_blank"
-              style="font-size:0.72rem;color:#6666aa;text-decoration:underline;">Open full size ↗</a>
-          </div>
-          <img id="thumbnailPreview" class="thumbnail-preview" alt="Blog thumbnail" />
-        </div>
 
         <!-- Meta Title -->
         <div class="seo-field">

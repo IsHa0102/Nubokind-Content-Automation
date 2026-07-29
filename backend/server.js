@@ -14,7 +14,6 @@ import {
   mediumStoryPrompt,
   mediumSciencePrompt,
   mediumSoftSalesPrompt,
-  buildThumbnailPrompt,
   buildInfographicContentPrompt
 } from "./promptTemplates.js";
 import { renderInfographic } from "./infographicRenderer.js";
@@ -141,37 +140,6 @@ function parseBlogOutput(rawText) {
   return { htmlContent, title, metaTitle, metaDescription, excerpt };
 }
 
-// ===== HELPER: Generate thumbnail via OpenAI DALL-E =====
-// Returns an image URL string, or null on failure (non-fatal — blog still returns).
-// category drives which Nubokind product scene is used — see buildThumbnailPrompt in promptTemplates.js.
-async function generateThumbnail(topic, category, keywords) {
-  if (!process.env.OPENAI_API_KEY) {
-    console.warn("OPENAI_API_KEY not set — skipping thumbnail generation.");
-    return null;
-  }
-
-  // Build a category-aware, product-grounded realistic image prompt
-  const imagePrompt = buildThumbnailPrompt(topic, category, keywords);
-
-  console.log("[Thumbnail] Prompt length:", imagePrompt.length, "chars | category:", category);
-
-  try {
-    const response = await openai.images.generate({
-      model: "gpt-image-1",
-      prompt: imagePrompt,
-      n: 1,
-      size: "1024x1024",
-      quality: "medium"
-    });
-
-    const b64 = response.data[0]?.b64_json;
-    return b64 ? `data:image/png;base64,${b64}` : null;
-  } catch (err) {
-    console.error("Thumbnail generation failed (non-fatal):", err.message);
-    return null;
-  }
-}
-
 // ===== GET /history =====
 app.get("/history", (req, res) => {
   // Return history newest-first, without full content (just metadata) for list
@@ -198,7 +166,7 @@ app.get("/history/:id", (req, res) => {
 
 // ===== POST /generate-blog =====
 // Response shape:
-// { title, metaTitle, metaDescription, excerpt, content, thumbnailUrl }
+// { title, metaTitle, metaDescription, excerpt, content }
 app.post("/generate-blog", async (req, res) => {
   try {
     const { topic, category, blogType, description } = req.body;
@@ -206,11 +174,7 @@ app.post("/generate-blog", async (req, res) => {
 
     const blogPrompt = selectBlogPrompt(topic, keywords, blogType || "general", description);
 
-    // Run Claude + thumbnail generation in parallel for speed
-    const [rawBlogText, thumbnailUrl] = await Promise.all([
-      callClaude(blogPrompt),
-      generateThumbnail(topic, category, keywords)
-    ]);
+    const rawBlogText = await callClaude(blogPrompt);
 
     // Parse structured fields out of Claude's response
     const { htmlContent, title, metaTitle, metaDescription, excerpt } =
@@ -236,8 +200,7 @@ app.post("/generate-blog", async (req, res) => {
       title,
       metaTitle,
       metaDescription,
-      excerpt,
-      thumbnailUrl: thumbnailUrl || ""
+      excerpt
     });
 
     res.json({
@@ -245,8 +208,7 @@ app.post("/generate-blog", async (req, res) => {
       metaTitle,
       metaDescription,
       excerpt,
-      content,
-      thumbnailUrl: thumbnailUrl || ""
+      content
     });
   } catch (error) {
     console.error("ERROR /generate-blog:", error);
@@ -299,10 +261,11 @@ app.post("/generate", async (req, res) => {
       callClaude(mediumPrompt)
     ]);
 
-    const { htmlContent } = parseBlogOutput(rawBlogText);
+    const { htmlContent, title, metaTitle, metaDescription, excerpt } =
+      parseBlogOutput(rawBlogText);
     const blogText = cleanBlogHtml(htmlContent);
 
-    console.log("BLOG+ARTICLE generated for:", topic);
+    console.log("BLOG+ARTICLE generated for:", topic, "| metaTitle:", metaTitle || "(empty)");
 
     // Save to history
     history.push({
@@ -314,10 +277,14 @@ app.post("/generate", async (req, res) => {
       mediumType: mediumType || "story",
       description: description || "",
       blog: blogText,
-      article: articleText
+      article: articleText,
+      title,
+      metaTitle,
+      metaDescription,
+      excerpt
     });
 
-    res.json({ blog: blogText, medium: articleText });
+    res.json({ blog: blogText, medium: articleText, title, metaTitle, metaDescription, excerpt });
   } catch (error) {
     console.error("ERROR /generate:", error);
     res.status(500).json({ error: "Something went wrong" });

@@ -13,21 +13,27 @@ const products = [
   },
   {
     name: "Kiko No-Drop Newborn Teether",
-    price: "₹649",
+    price: "₹449",
     url: "https://nubokind.com/products/kiko-no-drop-newborn-teether?variant=43747723313267",
     image: "https://res.cloudinary.com/dgqcdiyad/image/upload/f_auto,q_auto/kiko_teether_baby_hand_green_b23ujn"
   },
   {
     name: "High Contrast Cloth Book Set",
-    price: "₹699",
+    price: "₹549",
     url: "https://nubokind.com/products/high-contrast-cloth-book-set?variant=44128831012979",
     image: "https://res.cloudinary.com/dgqcdiyad/image/upload/f_auto,q_auto/cloth_book_uu9rnk"
   },
   {
     name: "Newborn Gift Kit",
-    price: "₹699",
+    price: "₹449",
     url: "https://nubokind.com/products/high-contrast-newborn-essential-kit?variant=44237127811187",
     image: "https://res.cloudinary.com/dgqcdiyad/image/upload/f_auto,q_auto/montessori_kit_gysxiw"
+  },
+  {
+    name: "High Contrast Flashcards & Tummy Time Banner",
+    price: "₹299",
+    url: "https://nubokind.com/products/high-contrast-flashcards-tummy-time-banner?variant=44938650714227",
+    image: "https://res.cloudinary.com/dgqcdiyad/image/upload/v1785340940/Screenshot_2026-07-29_213203_m2n6fd.png"
   }
 ];
 

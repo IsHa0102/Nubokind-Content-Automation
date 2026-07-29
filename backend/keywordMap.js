@@ -64,6 +64,46 @@ const keywordMap = {
     "nubokind teether",
     "nubokind review",
     "nubokind high contrast books"
+  ],
+
+  pregnancy: [
+    "pregnancy guide",
+    "guide to a healthy pregnancy",
+    "a healthy pregnancy",
+    "a guide to pregnancy",
+    "guide to being pregnant",
+    "prenatal guide",
+    "healthy pregnancy"
+  ],
+
+  breastfeeding: [
+    "breastfeeding",
+    "breastfeeding information"
+  ],
+
+  feeding: [
+    "baby food",
+    "baby formula",
+    "toddler meals"
+  ],
+
+  milestones: [
+    "infant milestones",
+    "1 month old milestones",
+    "3 month old milestones",
+    "4 month milestones",
+    "7 month milestones",
+    "8 month milestones",
+    "10 month old milestones"
+  ],
+
+  vaccination: [
+    "newborn vaccine schedule",
+    "newborn immunization schedule",
+    "new born vaccination schedule",
+    "new born vaccination chart",
+    "newborn vaccine schedule up",
+    "infants vaccination schedule"
   ]
 };
 

@@ -75,7 +75,7 @@ async function generateBlog() {
   const { topic, description, category, blogType } = getInputs();
   if (!topic) { alert("Please enter a topic."); return; }
 
-  setLoading(true, "Generating Shopify blog + thumbnail…");
+  setLoading(true, "Generating Shopify blog…");
   setOutput("blogOutput", "");
   clearSeoPanel();
 
@@ -85,7 +85,7 @@ async function generateBlog() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ topic, description, category, blogType })
     });
-    // New response shape: { title, metaTitle, metaDescription, excerpt, content, thumbnailUrl }
+    // Response shape: { title, metaTitle, metaDescription, excerpt, content }
     setOutput("blogOutput", data.content || data.blog || "");
     renderSeoPanel(data);
     await refreshHistory();
@@ -133,6 +133,7 @@ async function generateBoth() {
   setLoading(true, "Generating blog + article (this takes ~30s)…");
   setOutput("blogOutput", "");
   setOutput("mediumOutput", "");
+  clearSeoPanel();
 
   try {
     const data = await safeFetch(`${API}/generate`, {
@@ -142,6 +143,7 @@ async function generateBoth() {
     });
     setOutput("blogOutput", data.blog);
     setOutput("mediumOutput", data.medium);
+    renderSeoPanel(data);
     await refreshHistory();
   } catch (err) {
     console.error(err);
@@ -222,8 +224,7 @@ async function loadHistoryItem(id) {
       renderSeoPanel({
         metaTitle: item.metaTitle || "",
         metaDescription: item.metaDescription || "",
-        excerpt: item.excerpt || "",
-        thumbnailUrl: item.thumbnailUrl || ""
+        excerpt: item.excerpt || ""
       });
     }
     if (item.article) setOutput("mediumOutput", item.article);
@@ -251,36 +252,20 @@ function clearSeoPanel() {
   setSeoField("metaTitleValue", "", "metaTitleCount", 70);
   setSeoField("metaDescValue", "", "metaDescCount", 160);
   setSeoField("excerptValue", "");
-  const thumbField = document.getElementById("seoThumbnailField");
-  thumbField.style.display = "none";
-  const img = document.getElementById("thumbnailPreview");
-  img.classList.remove("visible");
-  img.src = "";
 }
 
 // Populates the SEO panel with data from the API response
 function renderSeoPanel(data) {
-  const { metaTitle = "", metaDescription = "", excerpt = "", thumbnailUrl = "" } = data;
+  const { metaTitle = "", metaDescription = "", excerpt = "" } = data;
 
   // Show the panel if we have at least one field
-  const hasContent = metaTitle || metaDescription || excerpt || thumbnailUrl;
+  const hasContent = metaTitle || metaDescription || excerpt;
   if (!hasContent) return;
   document.getElementById("seoPanelBlog").classList.add("visible");
 
   setSeoField("metaTitleValue", metaTitle, "metaTitleCount", 70);
   setSeoField("metaDescValue", metaDescription, "metaDescCount", 160);
   setSeoField("excerptValue", excerpt);
-
-  // Thumbnail
-  if (thumbnailUrl) {
-    const thumbField = document.getElementById("seoThumbnailField");
-    thumbField.style.display = "block";
-    const img = document.getElementById("thumbnailPreview");
-    const link = document.getElementById("thumbnailLink");
-    img.src = thumbnailUrl;
-    link.href = thumbnailUrl;
-    img.classList.add("visible");
-  }
 }
 
 // Sets a seo-value div's text, toggles 'empty' style, and optionally updates char counter
