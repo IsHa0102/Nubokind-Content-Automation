@@ -63,18 +63,21 @@ function selectMediumPrompt(topic, keywords, mediumType, description) {
 }
 
 // ===== HELPER: Call Claude =====
+// Returns { text, truncated }. truncated=true means Claude hit the max_tokens
+// ceiling before finishing — the HTML and/or the trailing METADATA block may be cut off.
 async function callClaude(prompt) {
   // Cache-busting note to avoid stale responses
   const fullPrompt = prompt + "\n\n<!-- System Note: Generate full length, format v2.1 -->";
   const response = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 8000,
+    max_tokens: 16000,
     messages: [{ role: "user", content: fullPrompt }]
   });
-  if (response.stop_reason !== "end_turn") {
-    console.warn("Response may be incomplete. Stop reason:", response.stop_reason);
+  const truncated = response.stop_reason === "max_tokens";
+  if (truncated) {
+    console.warn("Response was truncated — hit max_tokens before finishing.");
   }
-  return response.content[0].text;
+  return { text: response.content[0].text, truncated };
 }
 
 // ===== HELPER: Clean blog HTML =====
@@ -174,7 +177,7 @@ app.post("/generate-blog", async (req, res) => {
 
     const blogPrompt = selectBlogPrompt(topic, keywords, blogType || "general", description);
 
-    const rawBlogText = await callClaude(blogPrompt);
+    const { text: rawBlogText, truncated } = await callClaude(blogPrompt);
 
     // Parse structured fields out of Claude's response
     const { htmlContent, title, metaTitle, metaDescription, excerpt } =
@@ -208,7 +211,10 @@ app.post("/generate-blog", async (req, res) => {
       metaTitle,
       metaDescription,
       excerpt,
-      content
+      content,
+      warning: truncated
+        ? "The response was cut off before Claude finished — the blog and/or its meta title/description/excerpt may be incomplete. Try again or use a narrower topic."
+        : undefined
     });
   } catch (error) {
     console.error("ERROR /generate-blog:", error);
@@ -223,7 +229,7 @@ app.post("/generate-article", async (req, res) => {
     const keywords = keywordMap[category] || [];
 
     const mediumPrompt = selectMediumPrompt(topic, keywords, mediumType || "story", description);
-    const articleText = await callClaude(mediumPrompt);
+    const { text: articleText } = await callClaude(mediumPrompt);
 
     console.log("ARTICLE generated for:", topic);
 
@@ -256,10 +262,12 @@ app.post("/generate", async (req, res) => {
     const blogPrompt = selectBlogPrompt(topic, keywords, blogType || "general", description);
     const mediumPrompt = selectMediumPrompt(topic, keywords, mediumType || "story", description);
 
-    const [rawBlogText, articleText] = await Promise.all([
+    const [blogResult, articleResult] = await Promise.all([
       callClaude(blogPrompt),
       callClaude(mediumPrompt)
     ]);
+    const { text: rawBlogText, truncated } = blogResult;
+    const { text: articleText } = articleResult;
 
     const { htmlContent, title, metaTitle, metaDescription, excerpt } =
       parseBlogOutput(rawBlogText);
@@ -284,7 +292,17 @@ app.post("/generate", async (req, res) => {
       excerpt
     });
 
-    res.json({ blog: blogText, medium: articleText, title, metaTitle, metaDescription, excerpt });
+    res.json({
+      blog: blogText,
+      medium: articleText,
+      title,
+      metaTitle,
+      metaDescription,
+      excerpt,
+      warning: truncated
+        ? "The response was cut off before Claude finished — the blog and/or its meta title/description/excerpt may be incomplete. Try again or use a narrower topic."
+        : undefined
+    });
   } catch (error) {
     console.error("ERROR /generate:", error);
     res.status(500).json({ error: "Something went wrong" });

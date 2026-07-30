@@ -88,6 +88,7 @@ async function generateBlog() {
     // Response shape: { title, metaTitle, metaDescription, excerpt, content }
     setOutput("blogOutput", data.content || data.blog || "");
     renderSeoPanel(data);
+    if (data.warning) alert(data.warning);
     await refreshHistory();
   } catch (err) {
     console.error(err);
@@ -144,6 +145,7 @@ async function generateBoth() {
     setOutput("blogOutput", data.blog);
     setOutput("mediumOutput", data.medium);
     renderSeoPanel(data);
+    if (data.warning) alert(data.warning);
     await refreshHistory();
   } catch (err) {
     console.error(err);
