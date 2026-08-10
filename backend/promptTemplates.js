@@ -51,6 +51,7 @@ PRODUCT LINKS FOR CTAs (use the exact URLs above in anchor tags wherever natural
 - High Contrast Cloth Book Set: ${products[2].url}
 - High Contrast Newborn Essential Kit: ${products[3].url}
 - High Contrast Flashcards & Tummy Time Banner: ${products[4].url}
+- Orbi Ball Silicone Sensory Teether: ${products[5].url}
 - Main Site: https://nubokind.com/
 `;
 
@@ -77,8 +78,9 @@ CSS RULES TO EMBED IN <style> TAG:
 - Strong/bold: used for key terms and parent takeaways
 - ul/ol: clean left-aligned, no bullet decoration excess
 - .faq-block: border-left: 3px solid #111; padding-left: 16px; margin: 16px 0
-- .excerpt: font-style italic; border-left: 4px solid #ccc; padding-left: 12px; color: #444
-- .meta: font-size: 0.85rem; color: #666; margin-bottom: 24px
+- .quick-answer { background: #eef7ee; border-left: 4px solid #2f7a3d; border-radius: 4px; padding: 14px 16px; margin: 16px 0 24px 0; }
+- .quick-answer .qa-label { margin: 0 0 6px 0; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #2f7a3d; }
+- .quick-answer .qa-text { margin: 0; font-size: 0.95rem; line-height: 1.6; color: #222; }
 - table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 0.95rem; }
 - th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
 - th { background-color: #f4f4f4; font-weight: bold; color: #111; }
@@ -112,7 +114,15 @@ SKIMMABILITY RULES:
 CRITICAL — NO TITLE IN THE BODY:
 Do NOT include an <h1> or any visible title/heading inside <body>. Shopify renders
 the blog post's title on its own from the page <title>; repeating it as an <h1>
-duplicates it on the page. The <article> must start directly with the meta line below.
+duplicates it on the page. The <article> must start directly with the Quick Answer box below.
+
+QUICK ANSWER BOX — REPLACES THE OLD INTRO PARAGRAPH:
+Immediately after <article>, include one Quick Answer box using this exact markup:
+<div class="quick-answer">
+  <p class="qa-label">Quick Answer</p>
+  <p class="qa-text"><strong>[4-8 word bolded lead-in stating the core answer]</strong> [1-2 short sentences directly answering the primary keyword/topic — include specific numbers, ages, or steps where relevant. Written so it could be lifted as a featured-snippet / AI Overview answer. Max ~45 words total, plain text, no extra HTML.]</p>
+</div>
+Do NOT also include a separate excerpt or intro paragraph — the Quick Answer box is the only thing that appears before the first section.
 
 HTML STRUCTURE TO FOLLOW:
 <!DOCTYPE html>
@@ -127,8 +137,10 @@ HTML STRUCTURE TO FOLLOW:
 </head>
 <body>
   <article>
-    <p class="meta">Category | Nubokind Blog | Reading time: ~X min</p>
-    <p class="excerpt">[EXCERPT — 2 to 3 lines]</p>
+    <div class="quick-answer">
+      <p class="qa-label">Quick Answer</p>
+      <p class="qa-text"><strong>...</strong> ...</p>
+    </div>
     <!-- Sections -->
     <section>
       <h2>...</h2>

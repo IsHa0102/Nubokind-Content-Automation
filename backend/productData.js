@@ -34,6 +34,12 @@ const products = [
     price: "₹299",
     url: "https://nubokind.com/products/high-contrast-flashcards-tummy-time-banner?variant=44938650714227",
     image: "https://res.cloudinary.com/dgqcdiyad/image/upload/v1785340940/Screenshot_2026-07-29_213203_m2n6fd.png"
+  },
+  {
+    name: "Orbi Ball Silicone Sensory Teether",
+    price: "₹599",
+    url: "https://nubokind.com/products/orbi-ball-silicone-sensory-teether?variant=45124539514995",
+    image: "https://res.cloudinary.com/dgqcdiyad/image/upload/v1786383130/orbi_ball_yellow_vd4lqf.jpg"
   }
 ];
 
