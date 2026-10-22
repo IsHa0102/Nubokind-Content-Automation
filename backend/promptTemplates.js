@@ -52,6 +52,8 @@ PRODUCT LINKS FOR CTAs (use the exact URLs above in anchor tags wherever natural
 - High Contrast Newborn Essential Kit: ${products[3].url}
 - High Contrast Flashcards & Tummy Time Banner: ${products[4].url}
 - Orbi Ball Silicone Sensory Teether: ${products[5].url}
+- Sensory Baby Play Mat: ${products[6].url}
+- Chanting Baby Ganesha Toy: ${products[7].url}
 - Main Site: https://nubokind.com/
 `;
 

@@ -40,6 +40,18 @@ const products = [
     price: "₹599",
     url: "https://nubokind.com/products/orbi-ball-silicone-sensory-teether?variant=45124539514995",
     image: "https://res.cloudinary.com/dgqcdiyad/image/upload/v1786383130/orbi_ball_yellow_vd4lqf.jpg"
+  },
+  {
+    name: "Sensory Baby Play Mat",
+    price: "₹999",
+    url: "https://nubokind.com/collections/newborn-essentials/products/sensory-baby-play-mat-for-0-18-months-baby",
+    image: "https://res.cloudinary.com/dgqcdiyad/image/upload/v1791794886/amazonthumbnail_vq7snc.png"
+  },
+  {
+    name: "Chanting Baby Ganesha Toy",
+    price: "₹999",
+    url: "https://nubokind.com/collections/newborn-essentials/products/chanting-baby-ganesha",
+    image: "https://res.cloudinary.com/dgqcdiyad/image/upload/v1791794873/ganeshaamazonthumbnail_ayiibb.png"
   }
 ];
 
