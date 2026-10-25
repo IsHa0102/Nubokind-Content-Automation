@@ -53,7 +53,13 @@ const keywordMap = {
     "high contrast books",
     "tummy time activities",
     "flashcards",
-    "baby shower gifts"
+    "baby shower gifts",
+    "baby play mat",
+    "play mat for tummy time",
+    "sensory play mat",
+    "sensory development",
+    "sensory play for babies",
+    "musical toys for babies"
   ],
 
   all_products: [
@@ -63,7 +69,9 @@ const keywordMap = {
     "toys for 3 month old",
     "nubokind teether",
     "nubokind review",
-    "nubokind high contrast books"
+    "nubokind high contrast books",
+    "baby ganesha toy",
+    "chanting ganesha toy"
   ],
 
   pregnancy: [

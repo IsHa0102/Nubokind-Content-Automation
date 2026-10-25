@@ -13,7 +13,8 @@ import products from "./productData.js";
 const BRAND_CONTEXT = `
 BRAND: Nubokind — a modern Indian baby brand focused on early development,
 sensory play, and teething products. Products include teethers, flashcards,
-cloth books, and sensory kits. Inspired by Montessori principles.
+cloth books, sensory kits, a sensory play mat, and a chanting baby Ganesha toy.
+Inspired by Montessori principles.
 
 BRAND SPELLING: Always write "Nubo" / "Nubokind" with a plain "u".
 NEVER use the umlaut "ü" (e.g. never "Nübo", "nübo" or "Nübokind") — parents search without it.
@@ -36,7 +37,16 @@ ${products.map(p => `
   Price:   ${p.price}
   URL:     ${p.url}
   Image:   ${p.image}
+  Best for: ${p.bestFor}
 `).join("---")}
+
+PRODUCT MATCHING — CRITICAL:
+- Choose products by comparing the blog topic and keywords against each product's "Best for" list.
+  Do NOT default to the same few products every time.
+- Every product whose "Best for" clearly matches the topic should be considered — e.g. a tummy time
+  blog should feature the Sensory Baby Play Mat alongside the tummy time banner/books; a sensory
+  development blog should feature the Chanting Baby Ganesha Toy.
+- Never force a product into a blog where its "Best for" list does not fit.
 
 PRODUCT CARD HTML TEMPLATE (use for sales blogs — pick only relevant products):
 <div class="product-card">
