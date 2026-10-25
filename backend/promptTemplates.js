@@ -15,6 +15,9 @@ BRAND: Nubokind — a modern Indian baby brand focused on early development,
 sensory play, and teething products. Products include teethers, flashcards,
 cloth books, and sensory kits. Inspired by Montessori principles.
 
+BRAND SPELLING: Always write "Nubo" / "Nubokind" with a plain "u".
+NEVER use the umlaut "ü" (e.g. never "Nübo", "nübo" or "Nübokind") — parents search without it.
+
 AUDIENCE: New and first-time parents in India — curious, research-driven,
 emotionally engaged. They want reassurance AND knowledge.
 

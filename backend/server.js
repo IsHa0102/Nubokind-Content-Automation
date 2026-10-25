@@ -77,7 +77,15 @@ async function callClaude(prompt) {
   if (truncated) {
     console.warn("Response was truncated — hit max_tokens before finishing.");
   }
-  return { text: response.content[0].text, truncated };
+  return { text: stripBrandUmlaut(response.content[0].text), truncated };
+}
+
+// ===== HELPER: Normalize brand spelling =====
+// Parents search "nubo", not "nübo" — replace the umlaut (precomposed or combining) in the brand name.
+function stripBrandUmlaut(text) {
+  return text.replace(/n(ü|ü)bo/gi, (m, u) =>
+    m.replace(u, /[ÜU]/.test(u) ? "U" : "u")
+  );
 }
 
 // ===== HELPER: Clean blog HTML =====
